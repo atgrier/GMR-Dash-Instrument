@@ -13,7 +13,7 @@ Common settings.
 
 #define TOUCH_INT 16
 #define VEHICLE_BACKLIGHT 18
-#define VEHICLE_LIN 37
+#define VEHICLE_LIN 9
 #ifndef XIAO_BL
 #define XIAO_BL 5
 #endif

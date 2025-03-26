@@ -19,13 +19,6 @@ uint8_t instr = 0;
 uint8_t instr_prev = -1;
 uint8_t vehicle_brightness = 0;
 
-// TODO: Enter sleep after some amount of inactivity on LIN bus
-// TODO: Wake up on LIN activating.
-// #include "driver/rtc_io.h"
-// #define BUTTON_PIN_BITMASK(GPIO) (1ULL << GPIO)
-// #define USE_EXT0_WAKEUP 1
-// #define WAKEUP_GPIO GPIO_NUM_44
-
 // TODO: Generally add error handling for instruments and external calls
 
 // =========================================================================
