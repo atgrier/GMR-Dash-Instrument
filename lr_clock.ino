@@ -43,15 +43,12 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   syncTime();
 
   // Time for next tick
-  uint32_t previousTime = 0;
-  uint32_t currentTime = 0;
+  unsigned long previousTime = 0;
+  unsigned long currentTime = 0;
 
-  // TODO: Need to get time from the car
-  // TODO: Find a better method of timekeeping that self-corrects if it gets off. This doesn't
-  // TODO: Maybe just syncing the time everytime or every minute is good enough
   while (true) {
     currentTime = millis();
-    if (currentTime - previousTime >= 100) {  // TODO: Verify this wraps around
+    if (currentTime - previousTime >= 100) {
       // Update next tick time in 100 milliseconds for smooth movement
       previousTime = currentTime;
 

@@ -29,10 +29,10 @@ sh2_SensorValue_t sensorValue;
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
 
-long millisNow;
-long millisBacklight;
-long millisPrevious;
-long millisPerReading = 4;
+unsigned long millisNow;
+unsigned long millisBacklight;
+unsigned long millisPrevious;
+uint8_t millisPerReading = 4;
 // float roll_p, pitch_p;
 bool attitudeInitialized = false;
 
@@ -45,7 +45,7 @@ struct euler_t {
 void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data);
 
 void setupAttitude() {
-  uint16_t start = millis();
+  unsigned long start = millis();
   while (!bno08x.begin_I2C(BNO08x_I2CADDR_DEFAULT, &Wire1)) {
     Serial.println("Failed to find BNO08x chip");
     if (millis() - start > 1000) {

@@ -57,7 +57,7 @@ void IRAM_ATTR SoftwareLin::sendBreak(int breakBits, int delimiterBits)
 bool IRAM_ATTR SoftwareLin::checkBreak(uint32_t timeout)
 {
     assert(false == m_inFrame);
-    uint32_t start = millis();
+    unsigned long start = millis();
 
     bool breakDetected = false;
     if (!m_isrBuffer->available()) {
@@ -114,7 +114,7 @@ uint32_t IRAM_ATTR SoftwareLin::setAutoBaud(const uint32_t commonBaud[], int com
     m_bitTicks = (microsToTicks(1000000UL) + 1 / 2) / 1;
     // This is to satisfy the assertion in detectBaud();
 
-    uint32_t start = millis();
+    unsigned long start = millis();
     uint32_t detectedBaud = detectBaud();
     for (int i = 0; i < 3; ++i) {
         // After detectBaud() finished, there should be totally

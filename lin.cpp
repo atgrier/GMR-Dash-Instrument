@@ -13,7 +13,7 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
   }
 
   swLin.begin(LIN_BAUD_MAX);
-  uint32_t start = millis();
+  unsigned long start = millis();
   while (true) {
     if (millis() - start > 10000) {
       swLin.end();

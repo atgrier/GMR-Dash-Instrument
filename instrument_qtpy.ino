@@ -27,7 +27,6 @@ uint8_t vehicle_brightness = 0;
 // #define WAKEUP_GPIO GPIO_NUM_44
 
 // TODO: Generally add error handling for instruments and external calls
-// TODO: Generally verify that millis() and micros() calls in if statements wrap around
 
 // =========================================================================
 // Setup
@@ -71,7 +70,7 @@ int8_t clickType(uint8_t max_clicks = 127) {
     return 0;
   }
   int8_t clicks = 1;
-  uint32_t start = 0;
+  unsigned long start = 0;
   while (true) {
     start = millis();
     while (chsc6x_is_pressed()) {}
