@@ -7,7 +7,11 @@
 SoftwareLin swLin(VEHICLE_LIN, -1);
 bool timeInitialized = false;
 
-void getTimeFromVehicle(uint32_t timeout) {
+void getTimeFromVehicle(bool force, uint32_t timeout) {
+  if ((!force) && timeInitialized) {
+    return;
+  }
+
   swLin.begin(LIN_BAUD_MAX);
   uint32_t start = millis();
   while (true) {

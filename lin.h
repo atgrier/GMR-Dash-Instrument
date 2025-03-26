@@ -7,4 +7,4 @@
 #define HOUR_BYTE 3
 #define HOUR_MASK 0x1F
 
-void getTimeFromVehicle(uint32_t timeout = 1000);
+void getTimeFromVehicle(bool force = false, uint32_t timeout = 1000);

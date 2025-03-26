@@ -6,7 +6,6 @@ Touch: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#touch-funct
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "lin.h"
 #include "I2C_BM8563.h"
 #define USE_TFT_ESPI_LIBRARY
 #include "lv_xiao_round_screen.h"
@@ -48,8 +47,6 @@ void setup() {  // Setup is running on core 1
   Wire.begin();
   Wire1.begin();
   rtc.begin();
-
-  getTimeFromVehicle();
 }
 
 // =========================================================================

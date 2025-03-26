@@ -39,9 +39,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   spr->setTextDatum(MC_DATUM);
   spr->setTextColor(color_fg, COLOR_BG);  // TODO: evaluate need for background here
 
-  if (!timeInitialized) {
-    getTimeFromVehicle();
-  }
+  getTimeFromVehicle();
   syncTime();
 
   // Time for next tick
@@ -78,7 +76,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
     if (click == 1) {
       break;
     } else if (click == 2) {
-      getTimeFromVehicle();
+      getTimeFromVehicle(true);
     }
   }
 }
