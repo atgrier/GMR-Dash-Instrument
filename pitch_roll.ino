@@ -29,12 +29,9 @@ sh2_SensorValue_t sensorValue;
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
 
-unsigned long millisNow;
-unsigned long millisBacklight;
-unsigned long millisPrevious;
-uint8_t millisPerReading = 4;
 // float roll_p, pitch_p;
 bool attitudeInitialized = false;
+uint8_t millisPerReading = 4;
 
 // TODO: Determine which angles I need, and any necessary offsets
 struct euler_t {
@@ -68,7 +65,9 @@ void attitudeInstrument(TFT_eSprite *spr) {
     }
   }
 
-  millisBacklight = millis();
+  unsigned long millisNow;
+  unsigned long millisPrevious = millis();
+  unsigned long millisBacklight = millis();
 
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi24);
@@ -146,6 +145,7 @@ void attitudeInstrument(TFT_eSprite *spr) {
     if (clickType(1) == 1) {
       break;
     }
+    checkSleep();
   }
 }
 

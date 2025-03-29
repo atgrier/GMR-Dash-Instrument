@@ -2,6 +2,7 @@
 Common settings.
 */
 
+#define LIN_OFF_TIME 10000
 #define SCREEN_SIZE 240
 #define SCREEN_WIDTH SCREEN_SIZE
 #define SCREEN_HEIGHT SCREEN_SIZE
@@ -13,7 +14,8 @@ Common settings.
 
 #define TOUCH_INT 16
 #define VEHICLE_BACKLIGHT 18
-#define VEHICLE_LIN 9
+#define VEHICLE_LIN 37
+#define WAKEUP_PIN 9
 #ifndef XIAO_BL
 #define XIAO_BL 5
 #endif

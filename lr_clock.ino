@@ -3,12 +3,12 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 RTC Calibration: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#off-line-manual-calibration-of-the-rtc
 Get RTC Time: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#get-rtc-time
 */
-#include "I2C_BM8563.h"
+#include <Wire.h>
+#include "src/SoftwareLin/SoftwareLin.h"
 #include "fonts/EurostileLTProUnicodeDemi48.h"
 #include "common.h"
+#include "sleep.h"
 #include "lin.h"
-
-I2C_BM8563_TimeTypeDef timeStruct;
 
 #define COLOR_PIVOT 0x18C3
 #define COLOR_MH 0xF7BE
@@ -32,8 +32,17 @@ uint16_t color_hh = COLOR_HH;
 #define HOUR_ANGLE (MINUTE_ANGLE / 12.0)
 
 float time_secs = 0;
+bool clockInitialized = false;
+I2C_BM8563 rtc(I2C_BM8563_DEFAULT_ADDRESS, Wire);
+SoftwareLin swLin(VEHICLE_LIN, -1);
+bool timeInitialized = false;
 
 void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
+  if (!clockInitialized) {
+    rtc.begin();
+    clockInitialized = true;
+  }
+
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi48);
   spr->setTextDatum(MC_DATUM);
@@ -75,6 +84,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
     } else if (click == 2) {
       getTimeFromVehicle(true);
     }
+    checkSleep();
   }
 }
 
@@ -145,5 +155,79 @@ F0  01  2D  51  00                      80
 */
 void syncTime(void) {
   rtc.getTime(&timeStruct);
-  time_secs = timeStruct.hours * 3600 + timeStruct.minutes * 60 + timeStruct.seconds;
+  time_secs = (timeStruct.hours * 3600) + (timeStruct.minutes * 60) + timeStruct.seconds;
+}
+
+void getTimeFromVehicle(bool force, uint32_t timeout) {
+  return;  // TODO
+  if ((!force) && timeInitialized) {
+    return;
+  }
+
+  detachInterrupt(VEHICLE_LIN);
+  swLin.begin(LIN_BAUD_MAX);
+  unsigned long start = millis();
+  while (true) {
+    if (millis() - start > 10000) {
+      swLin.end();
+      break;
+    }
+    const int frame_data_bytes = 4;
+
+    uint8_t buf[2 + frame_data_bytes];  // 2 bytes for PID and CHECKSUM. !!! The SYNC is consumed by swLin.setAutoBaud()
+
+    // sw_lin.checkBreak() blocks until UART ISR gives the semaphore.
+    // TODO: I NEED this to not be blocking, so that I don't get stuck if the bus is inactive or the wire comes undone
+    if (swLin.checkBreak(timeout)) {
+
+      const uint32_t commonBaud[] = { 9597, 9600, 9615 };
+      uint32_t autobaud = swLin.setAutoBaud(commonBaud, sizeof(commonBaud) / sizeof(commonBaud[0]), timeout);
+
+      const int read_timeout = 100000;  // 100ms timeout
+      int start_time = micros();
+
+      int bytes_to_read = sizeof(buf) / sizeof(buf[0]);
+      int bytes_read = 0;
+      while (bytes_read < bytes_to_read && micros() - start_time <= read_timeout) {
+        bytes_read += swLin.read(buf + bytes_read, bytes_to_read - bytes_read);
+        delay(0);  // yield for other tasks
+      }
+      swLin.endFrame();
+
+      if (bytes_read < bytes_to_read) {
+        // Serial.printf("Timeout: only %d bytes is read\n", bytes_read);
+        continue;
+      }
+      // Serial.println(buf[0]);
+      if (buf[0] != 0xF0) {
+        continue;
+      }
+      uint8_t chk = buf[1] + buf[2] + buf[3] + buf[4];
+      if (chk + buf[5] != 0xFF) {
+        // Serial.print("Data is invalid, got Checksum: ");
+        // Serial.print(buf[5]);
+        // Serial.print(". Expected: ");
+        // Serial.println(0xFF - chk);
+        continue;
+      }
+      for (int i = 0; i < bytes_to_read; ++i) {
+        Serial.printf("0x%02X ", buf[i]);
+      }
+      Serial.print("\nHour: ");
+      Serial.println(buf[HOUR_BYTE] & HOUR_MASK);
+      Serial.print("Minute: ");
+      Serial.println(buf[MIN_BYTE]);
+      Serial.print("Second: ");
+      Serial.println(buf[SEC_BYTE]);
+      Serial.println();
+      timeStruct.hours = buf[HOUR_BYTE] & HOUR_MASK;
+      timeStruct.minutes = buf[MIN_BYTE];
+      timeStruct.seconds = buf[SEC_BYTE];
+      rtc.setTime(&timeStruct);
+      timeInitialized = true;
+      swLin.end();
+      break;
+    }
+  }
+  attachInterrupt(VEHICLE_LIN, updateLinTime, RISING);
 }

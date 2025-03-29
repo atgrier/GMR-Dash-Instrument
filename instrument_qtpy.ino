@@ -6,11 +6,8 @@ Touch: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#touch-funct
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "I2C_BM8563.h"
 #define USE_TFT_ESPI_LIBRARY
 #include "lv_xiao_round_screen.h"
-
-I2C_BM8563 rtc(I2C_BM8563_DEFAULT_ADDRESS, Wire);
 
 TFT_eSprite instrument = TFT_eSprite(&tft);
 TFT_eSprite helper = TFT_eSprite(&tft);
@@ -26,9 +23,12 @@ uint8_t vehicle_brightness = 0;
 // =========================================================================
 void setup() {  // Setup is running on core 1
   Serial.begin(115200);
-  while (!Serial) { ; }
+  unsigned long start = millis();
+  while ((!Serial) && ((millis() - start) < 1000)) { delay(10); }
   Serial.println("Booting...");
 
+  wakeupCleanup();
+  attachInterrupt(VEHICLE_LIN, updateLinTime, RISING);
   xiao_disp_init();
   instrument.createSprite(CARD_SIZE, CARD_SIZE);
   helper.createSprite(CARD_SIZE, CARD_SIZE);
@@ -38,7 +38,6 @@ void setup() {  // Setup is running on core 1
   handleBacklight(100);
   Wire.begin();
   Wire1.begin();
-  rtc.begin();
 }
 
 // =========================================================================

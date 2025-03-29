@@ -1,13 +1,32 @@
-/* Sleep. */
-
-// TODO: Enter sleep after some amount of inactivity on LIN bus
-// TODO: Wake up on LIN activating.
+/*
+Sleep.
+*/
 
 #include "driver/rtc_io.h"
+#include "sleep.h"
+
+unsigned long lastLinTime;
 
 void goToSleep() {
-  rtc_gpio_pullup_dis(VEHICLE_LIN);
-  rtc_gpio_pulldown_en(VEHICLE_LIN);
-  esp_sleep_enable_ext0_wakeup(VEHICLE_LIN, 1);
+  digitalWrite(XIAO_BL, LOW);
+  rtc_gpio_hold_en((gpio_num_t)XIAO_BL);
+  rtc_gpio_pullup_dis((gpio_num_t)WAKEUP_PIN);
+  rtc_gpio_pulldown_en((gpio_num_t)WAKEUP_PIN);
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_PIN, 1);
   esp_deep_sleep_start();
+}
+
+void wakeupCleanup() {
+  rtc_gpio_hold_dis((gpio_num_t)XIAO_BL);
+  rtc_gpio_deinit((gpio_num_t)XIAO_BL);
+  rtc_gpio_deinit((gpio_num_t)WAKEUP_PIN);
+}
+
+void updateLinTime() {
+  lastLinTime = millis();
+}
+
+void checkSleep() {
+  return; // TODO
+  if (millis() - lastLinTime > LIN_OFF_TIME) { goToSleep(); }
 }
