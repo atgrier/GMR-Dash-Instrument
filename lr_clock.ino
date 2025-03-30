@@ -46,10 +46,10 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi48);
   spr->setTextDatum(MC_DATUM);
-  spr->setTextColor(color_fg, COLOR_BG);  // TODO: evaluate need for background here
 
-  getTimeFromVehicle();
   syncTime();
+  drawClock(spr, hlpr, time_secs);
+  getTimeFromVehicle();
 
   // Time for next tick
   unsigned long previousTime = 0;
@@ -89,6 +89,10 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 }
 
 void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, float t) {
+  if (t >= 86400) {
+    t -= 86400;
+  }
+  spr->setTextColor(color_fg, COLOR_BG);  // TODO: evaluate need for background here
   renderFace(spr);
   renderHands(hlpr, t);
   hlpr->pushToSprite(spr, 0, 0, COLOR_BG);
@@ -220,6 +224,7 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
       Serial.print("Second: ");
       Serial.println(buf[SEC_BYTE]);
       Serial.println();
+      // TODO: The time does not seem to be set correctly
       timeStruct.hours = buf[HOUR_BYTE] & HOUR_MASK;
       timeStruct.minutes = buf[MIN_BYTE];
       timeStruct.seconds = buf[SEC_BYTE];

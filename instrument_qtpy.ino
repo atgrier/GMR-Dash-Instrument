@@ -92,6 +92,7 @@ Dimmest pulse is 1054 ms high (Basically 10% duty cycle)
 Highest pulse is 100% duty cycle
 */
 bool handleBacklight(uint32_t freq) {
+  // TODO: The brightness flickers a lot when the vehicle is on, maybe the PWM varies a lot?
   uint8_t brightness = (uint8_t)max(min((255 * pulseIn(VEHICLE_BACKLIGHT, HIGH, 3000000 / freq) * freq / 1000000), (long unsigned int)255), (long unsigned int)0);
   if (brightness == 0 && digitalRead(VEHICLE_BACKLIGHT)) {
     brightness = 255;
