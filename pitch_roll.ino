@@ -75,34 +75,7 @@ void attitudeInstrument(TFT_eSprite *spr) {
   // The background colour will be read during the character rendering
   spr->setTextColor(COLOR_FG);
 
-  // float roll_d, pitch_d;
-  // float i_integral[] = { 0, 0 };
-  // // TODO: Could maybe re-incorporate threshold if it seems necessary, but the BNO085 by itself seems quite good
-  // // TODO: Evaluate whether the PID is needed with the BNO085 chip
-  // float kp = 0.4;
-  // float ki = 0.000005;
-  // float kd = 20.0;
-
   while (true) {
-    // if (Serial.available()) {
-    //   String incoming = Serial.readString();
-    //   float val = incoming.substring(1).toFloat();
-    //   if (incoming.substring(0, 1) == "p") {
-    //     kp = val;
-    //     Serial.print("kp is ");
-    //     Serial.println(kp);
-    //   } else if (incoming.substring(0, 1) == "i") {
-    //     ki = val;
-    //     Serial.print("ki is ");
-    //     Serial.println(ki);
-    //   } else if (incoming.substring(0, 1) == "d") {
-    //     kd = val;
-    //     Serial.print("kd is ");
-    //     Serial.println(kd);
-    //   }
-    //   delay(500);
-    // }
-
     // check if it's time to read data and update the filter
     millisNow = millis();
     if (millisNow - millisPrevious >= millisPerReading) {
@@ -115,26 +88,6 @@ void attitudeInstrument(TFT_eSprite *spr) {
             break;
         }
       }
-
-      // roll_d = ypr.roll - roll_p;
-      // pitch_d = ypr.pitch - pitch_p;
-
-      // i_integral[0] += roll_d * millisPerReading;
-      // i_integral[1] += pitch_d * millisPerReading;
-
-      // This really helps more than any of the other smoothing
-      // ypr.roll = roll_p + (roll_d * kp) + ((roll_d / (millisPerReading)) * kd) + (i_integral[0] * ki);
-      // ypr.pitch = pitch_p + (pitch_d * kp) + ((pitch_d / (millisPerReading)) * kd) + (i_integral[1] * ki);
-
-      // roll_p = ypr.roll;
-      // pitch_p = ypr.pitch;
-
-      // Serial.print(" roll: ");
-      // Serial.print(ypr.roll);
-      // Serial.print(" pitch: ");
-      // Serial.print(ypr.pitch);
-      // Serial.print(" yaw: ");
-      // Serial.println(ypr.yaw);
 
       drawAttitude(spr, ypr.roll, ypr.pitch);
       if ((millis() - millisBacklight) >= 1000) {
