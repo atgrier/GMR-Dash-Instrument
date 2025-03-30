@@ -97,7 +97,7 @@ bool handleBacklight(uint32_t freq) {
   if (brightness == 0 && digitalRead(VEHICLE_BACKLIGHT)) {
     brightness = 255;
   }
-  if (brightness == vehicle_brightness) {
+  if ((brightness == vehicle_brightness) || ((brightness != 0) && (brightness != 255) && (fabsf(brightness - vehicle_brightness) <= 8))) {
     return (brightness != 0);
   }
   vehicle_brightness = brightness;
