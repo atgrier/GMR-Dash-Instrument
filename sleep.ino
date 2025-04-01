@@ -9,16 +9,18 @@ unsigned long lastLinTime;
 
 void goToSleep() {
   digitalWrite(XIAO_BL, LOW);
-  rtc_gpio_hold_en((gpio_num_t)XIAO_BL);
+  gpio_hold_en((gpio_num_t)XIAO_BL);
   rtc_gpio_pullup_dis((gpio_num_t)WAKEUP_PIN);
   rtc_gpio_pulldown_en((gpio_num_t)WAKEUP_PIN);
+  gpio_deep_sleep_hold_en();
   esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_PIN, 1);
   esp_deep_sleep_start();
 }
 
 void wakeupCleanup() {
-  rtc_gpio_hold_dis((gpio_num_t)XIAO_BL);
-  rtc_gpio_deinit((gpio_num_t)XIAO_BL);
+  gpio_deep_sleep_hold_dis();
+  gpio_hold_dis((gpio_num_t)XIAO_BL);
+  rtc_gpio_pulldown_dis((gpio_num_t)WAKEUP_PIN);
   rtc_gpio_deinit((gpio_num_t)WAKEUP_PIN);
 }
 
@@ -27,6 +29,11 @@ void updateLinTime() {
 }
 
 void checkSleep() {
-  return; // TODO
   if (millis() - lastLinTime > LIN_OFF_TIME) { goToSleep(); }
+}
+
+void attachSleepInterrupt() {
+  pinMode(VEHICLE_LIN, INPUT);
+  pinMode(WAKEUP_PIN, INPUT);
+  attachInterrupt(VEHICLE_LIN, updateLinTime, RISING);
 }

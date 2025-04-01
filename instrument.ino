@@ -5,6 +5,7 @@ Touch: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#touch-funct
 
 #include <Arduino.h>
 #include <Wire.h>
+#include "sleep.h"
 
 #define USE_TFT_ESPI_LIBRARY
 #include "lv_xiao_round_screen.h"
@@ -21,14 +22,14 @@ uint8_t vehicle_brightness = 0;
 // =========================================================================
 // Setup
 // =========================================================================
-void setup() {  // Setup is running on core 1
+void setup() {
   Serial.begin(115200);
   unsigned long start = millis();
   while ((!Serial) && ((millis() - start) < 1000)) { delay(10); }
   Serial.println("Booting...");
 
   wakeupCleanup();
-  attachInterrupt(VEHICLE_LIN, updateLinTime, RISING);
+  attachSleepInterrupt();
   xiao_disp_init();
   instrument.createSprite(CARD_SIZE, CARD_SIZE);
   helper.createSprite(CARD_SIZE, CARD_SIZE);
@@ -37,7 +38,9 @@ void setup() {  // Setup is running on core 1
   pinMode(VEHICLE_BACKLIGHT, INPUT);
   handleBacklight(100);
   Wire.begin();
+#ifdef QTPY_ESP32S3
   Wire1.begin();
+#endif
 }
 
 // =========================================================================

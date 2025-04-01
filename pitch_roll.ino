@@ -43,7 +43,12 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data);
 
 void setupAttitude() {
   unsigned long start = millis();
+#ifdef XIAO_ESP32S3
+  while (!bno08x.begin_I2C(BNO08x_I2CADDR_DEFAULT)) {
+#endif
+#ifdef QTPY_ESP32S3
   while (!bno08x.begin_I2C(BNO08x_I2CADDR_DEFAULT, &Wire1)) {
+#endif
     Serial.println("Failed to find BNO08x chip");
     if (millis() - start > 1000) {
       return;

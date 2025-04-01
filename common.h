@@ -2,6 +2,9 @@
 Common settings.
 */
 
+#define XIAO_ESP32S3
+// #define QTPY_ESP32S3
+
 #define LIN_OFF_TIME 10000
 #define SCREEN_SIZE 240
 #define SCREEN_WIDTH SCREEN_SIZE
@@ -12,6 +15,7 @@ Common settings.
 #define CHSC6X_MAX_POINTS_NUM 1
 #define CHSC6X_READ_POINT_LEN 5
 
+#ifdef QTPY_ESP32S3
 #define TOUCH_INT 16
 #define VEHICLE_BACKLIGHT 18
 #define VEHICLE_LIN 37
@@ -21,15 +25,19 @@ Common settings.
 #endif
 #define XIAO_DC 8
 #define XIAO_CS 17
+#endif
 
-// #define TOUCH_INT D7
-// #define VEHICLE_BACKLIGHT D0
-// #define VEHICLE_LIN D9
-// #ifndef XIAO_BL
-// #define XIAO_BL D6
-// #endif
-// #define XIAO_DC D3
-// #define XIAO_CS D1
+#ifdef XIAO_ESP32S3
+#define TOUCH_INT D9  // Mismatched from original D7
+#define VEHICLE_BACKLIGHT D0
+#define VEHICLE_LIN D7
+#define WAKEUP_PIN 3  // D2
+#ifndef XIAO_BL
+#define XIAO_BL 43  // D6
+#endif
+#define XIAO_DC D3
+#define XIAO_CS D1
+#endif
 
 #define COLOR_BG 0x2104
 #define COLOR_FG 0xEF7D

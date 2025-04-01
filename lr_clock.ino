@@ -163,7 +163,6 @@ void syncTime(void) {
 }
 
 void getTimeFromVehicle(bool force, uint32_t timeout) {
-  return;  // TODO
   if ((!force) && timeInitialized) {
     return;
   }
@@ -192,7 +191,7 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
 
       int bytes_to_read = sizeof(buf) / sizeof(buf[0]);
       int bytes_read = 0;
-      while (bytes_read < bytes_to_read && micros() - start_time <= read_timeout) {
+      while ((bytes_read < bytes_to_read) && ((micros() - start_time) <= read_timeout)) {
         bytes_read += swLin.read(buf + bytes_read, bytes_to_read - bytes_read);
         delay(0);  // yield for other tasks
       }
@@ -234,5 +233,5 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
       break;
     }
   }
-  attachInterrupt(VEHICLE_LIN, updateLinTime, RISING);
+  attachSleepInterrupt();
 }
