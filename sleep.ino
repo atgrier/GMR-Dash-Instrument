@@ -8,7 +8,12 @@ Sleep.
 unsigned long lastLinTime;
 
 void goToSleep() {
-  bno085.modeSleep();
+  if (attitudeInitialized) {
+    bno085.modeSleep();
+  }
+  delay(10);
+  tft.writecommand(0x10);
+  delay(10);
   digitalWrite(XIAO_BL, LOW);
   gpio_hold_en((gpio_num_t)XIAO_BL);
   rtc_gpio_pullup_dis((gpio_num_t)WAKEUP_PIN);
