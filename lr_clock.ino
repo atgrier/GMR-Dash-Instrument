@@ -48,7 +48,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   spr->setTextDatum(MC_DATUM);
 
   syncTime();
-  drawClock(spr, hlpr, time_secs);
+  drawClock(spr, hlpr);
   getTimeFromVehicle();
 
   // Time for next tick
@@ -67,7 +67,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
         time_secs -= 86400;
       }
 
-      drawClock(spr, hlpr, time_secs);
+      drawClock(spr, hlpr);
       if (handleBacklight(100)) {
         color_fg = COLOR_FG_NIGHT;
         color_mh = COLOR_MH_NIGHT;
@@ -88,13 +88,10 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   }
 }
 
-void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, float t) {
-  if (t >= 86400) {
-    t -= 86400;
-  }
+void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   spr->setTextColor(color_fg, COLOR_BG);  // TODO: evaluate need for background here
   renderFace(spr);
-  renderHands(hlpr, t);
+  renderHands(hlpr);
   hlpr->pushToSprite(spr, 0, 0, COLOR_BG);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
@@ -124,9 +121,9 @@ void renderFace(TFT_eSprite *spr) {
   spr->drawNumber(9, CARD_C - dialRadius - hOffset, CARD_C + 2);
 }
 
-void renderHands(TFT_eSprite *hlpr, float t) {
-  float h_angle = t * HOUR_ANGLE;
-  float m_angle = t * MINUTE_ANGLE;
+void renderHands(TFT_eSprite *hlpr) {
+  float h_angle = time_secs * HOUR_ANGLE;
+  float m_angle = time_secs * MINUTE_ANGLE;
 
   // The hands are completely redrawn - this can be done quickly
   hlpr->fillSprite(COLOR_BG);
@@ -134,12 +131,12 @@ void renderHands(TFT_eSprite *hlpr, float t) {
   float xp = 0.0, yp = 0.0;  // Use float pixel position for smooth AA motion
 
   // Draw hour hand
-  getCoord(CARD_C, CARD_C, &xp, &yp, H_HAND_LENGTH, h_angle);
+  getCoord(CARD_C, CARD_C, &xp, &yp, H_HAND_LENGTH, h_angle - 90);
   hlpr->drawWedgeLine(CARD_C, CARD_C, xp, yp, 10.0, 6.0, color_hh);
   hlpr->drawArc(CARD_C, CARD_C, H_HAND_LENGTH + 8, H_HAND_LENGTH, 0, 360, COLOR_BG, 0x00FFFFFF);
 
   // Draw minute hand
-  getCoord(CARD_C, CARD_C, &xp, &yp, M_HAND_LENGTH, m_angle);
+  getCoord(CARD_C, CARD_C, &xp, &yp, M_HAND_LENGTH, m_angle - 90);
   hlpr->drawWedgeLine(CARD_C, CARD_C, xp, yp, 8.0, 4.0, color_mh);
   hlpr->drawArc(CARD_C, CARD_C, M_HAND_LENGTH + 8, M_HAND_LENGTH, 0, 360, COLOR_BG, 0x00FFFFFF);
 
@@ -180,7 +177,7 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
     uint8_t buf[2 + frame_data_bytes];  // 2 bytes for PID and CHECKSUM. !!! The SYNC is consumed by swLin.setAutoBaud()
 
     // sw_lin.checkBreak() blocks until UART ISR gives the semaphore.
-    // TODO: I NEED this to not be blocking, so that I don't get stuck if the bus is inactive or the wire comes undone
+    // I think I've made adequate changes so checkBreak() is no longer blocking
     if (swLin.checkBreak(timeout)) {
 
       const uint32_t commonBaud[] = { 9597, 9600, 9615 };
@@ -223,7 +220,6 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
       Serial.print("Second: ");
       Serial.println(buf[SEC_BYTE]);
       Serial.println();
-      // TODO: The time does not seem to be set correctly
       timeStruct.hours = buf[HOUR_BYTE] & HOUR_MASK;
       timeStruct.minutes = buf[MIN_BYTE];
       timeStruct.seconds = buf[SEC_BYTE];

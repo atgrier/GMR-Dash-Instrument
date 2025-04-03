@@ -77,7 +77,7 @@ int8_t clickType(uint8_t max_clicks = 127) {
     }
     start = millis();
     while (!chsc6x_is_pressed()) {
-      if ((millis() - start) >= 300) {
+      if ((millis() - start) >= 400) {
         return clicks;
       }
     }
