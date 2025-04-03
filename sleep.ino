@@ -8,6 +8,7 @@ Sleep.
 unsigned long lastLinTime;
 
 void goToSleep() {
+  bno085.modeSleep();
   digitalWrite(XIAO_BL, LOW);
   gpio_hold_en((gpio_num_t)XIAO_BL);
   rtc_gpio_pullup_dis((gpio_num_t)WAKEUP_PIN);

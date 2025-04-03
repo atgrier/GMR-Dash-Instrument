@@ -1,14 +1,13 @@
 /*
 I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against any background color, i.e. when passing in 0x00FFFFFF
 */
-#include <Adafruit_BNO08x.h>
+#include "SparkFun_BNO080_Arduino_Library.h"
 
 #include "fonts/EurostileLTProUnicodeDemi24.h"
 #include "common.h"
 
-#define BNO08X_RESET -1
-Adafruit_BNO08x bno08x(BNO08X_RESET);
-sh2_SensorValue_t sensorValue;
+BNO080 bno085;
+#define BNO085_ADDR 0x4A
 
 #define COLOR_SKY 0x4457
 #define COLOR_GROUND 0x9B06
@@ -44,10 +43,10 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data);
 void setupAttitude() {
   unsigned long start = millis();
 #ifdef XIAO_ESP32S3
-  while (!bno08x.begin_I2C(BNO08x_I2CADDR_DEFAULT)) {
+  while (!bno085.begin(BNO085_ADDR)) {
 #endif
 #ifdef QTPY_ESP32S3
-  while (!bno08x.begin_I2C(BNO08x_I2CADDR_DEFAULT, &Wire1)) {
+  while (!bno085.begin(BNO085_ADDR, &Wire1)) {
 #endif
     Serial.println("Failed to find BNO08x chip");
     if (millis() - start > 1000) {
@@ -56,9 +55,7 @@ void setupAttitude() {
     delay(10);
   }
   Serial.println("BNO08x Found!");
-  if (!bno08x.enableReport(SH2_ROTATION_VECTOR, millisPerReading * 1000)) {
-    Serial.println("Could not enable vector");
-  }
+  bno085.enableRotationVector(millisPerReading);
   attitudeInitialized = true;
 }
 
@@ -86,12 +83,8 @@ void attitudeInstrument(TFT_eSprite *spr) {
     if (millisNow - millisPrevious >= millisPerReading) {
       millisPrevious = millisPrevious + millisPerReading;
 
-      if (bno08x.getSensorEvent(&sensorValue)) {
-        switch (sensorValue.sensorId) {
-          case SH2_ROTATION_VECTOR:
-            quaternionToEuler(sensorValue.un.rotationVector.real, sensorValue.un.rotationVector.i, sensorValue.un.rotationVector.j, sensorValue.un.rotationVector.k, &ypr);
-            break;
-        }
+      if (bno085.dataAvailable()) {
+        quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
       }
 
       drawAttitude(spr, ypr.roll, ypr.pitch);
