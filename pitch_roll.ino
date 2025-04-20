@@ -87,7 +87,7 @@ void attitudeInstrument(TFT_eSprite *spr) {
         quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
       }
 
-      drawAttitude(spr, ypr.roll, ypr.pitch);
+      drawAttitude(spr, ypr.pitch, ypr.roll);
       if ((millis() - millisBacklight) >= 1000) {
         handleBacklight(100);
         millisBacklight = millis();
@@ -101,8 +101,8 @@ void attitudeInstrument(TFT_eSprite *spr) {
 }
 
 void drawAttitude(TFT_eSprite *spr, float roll, float pitch) {
-  drawBackground(spr, pitch);
-  drawForeground(spr, roll * ROLL_MULTIPLIER);
+  drawBackground(spr, pitch + 90 - 10);  // TODO: Calibrate zero pitch offset
+  drawForeground(spr, roll * ROLL_MULTIPLIER);  // TODO: Calibrate zero roll offset
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
 
