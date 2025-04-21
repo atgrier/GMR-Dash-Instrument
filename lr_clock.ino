@@ -85,6 +85,8 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
       break;
     } else if (click == 2) {
       getTimeFromVehicle(true);
+    } else if (click == 3) {
+      goToSleep();
     }
     checkSleep();
   }

@@ -87,7 +87,6 @@ void attitudeInstrument(TFT_eSprite *spr) {
   spr->setTextColor(COLOR_FG);
 
   while (true) {
-    // check if it's time to read data and update the filter
     millisNow = millis();
     if (millisNow - millisPrevious >= millisPerReading) {
       millisPrevious += millisPerReading;
@@ -107,8 +106,15 @@ void attitudeInstrument(TFT_eSprite *spr) {
         }
       }
     }
-    if (clickType(1) == 1) {
+    int8_t click = clickType(3);
+    if (click == 1) {
       break;
+    } else if (click == 2) {
+      if (attitudeInitialized) {
+        resetAttitude();
+      }
+    } else if (click == 3) {
+      goToSleep();
     }
     checkSleep();
   }
