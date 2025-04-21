@@ -80,7 +80,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
         color_hh = COLOR_HH;
       }
     }
-    int8_t click = clickType(2);
+    int8_t click = clickType(3);
     if (click == 1) {
       break;
     } else if (click == 2) {
