@@ -38,8 +38,12 @@ void setup() {
   pinMode(VEHICLE_BACKLIGHT, INPUT);
   handleBacklight(100);
   Wire.begin();
+#ifdef XIAO_ESP32S3
+  Wire.setTimeout(4);
+#endif
 #ifdef QTPY_ESP32S3
   Wire1.begin();
+  Wire1.setTimeout(4);
 #endif
 }
 
