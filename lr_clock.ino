@@ -50,6 +50,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   syncTime();
   drawClock(spr, hlpr);
   getTimeFromVehicle();
+  unsigned long lastCheckTime = millis();
 
   // Time for next tick
   unsigned long previousTime = 0;
@@ -57,6 +58,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 
   while (true) {
     currentTime = millis();
+    if ((!clockInitialized) && (currentTime - lastCheckTime >= 60000)) { getTimeFromVehicle(); }
     if (currentTime - previousTime >= 100) {
       // Update next tick time in 100 milliseconds for smooth movement
       previousTime = currentTime;
