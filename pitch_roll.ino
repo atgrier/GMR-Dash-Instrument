@@ -28,11 +28,11 @@ BNO080 bno085;
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
 
-// float roll_p, pitch_p;
 bool attitudeInitialized = false;
-uint8_t millisPerReading = 4;
+uint8_t millisPerReading = 50;
+uint8_t missedReadings = 0;
+bool justReset = true;
 
-// TODO: Determine which angles I need, and any necessary offsets
 struct euler_t {
   float yaw;
   float pitch;
@@ -59,6 +59,15 @@ void setupAttitude() {
   attitudeInitialized = true;
 }
 
+void resetAttitude() {
+  bno085.modeSleep();
+  delay(10);
+  attitudeInitialized = false;
+  missedReadings = 0;
+  justReset = true;
+  setupAttitude();
+}
+
 void attitudeInstrument(TFT_eSprite *spr) {
   if (!attitudeInitialized) {
     setupAttitude();
@@ -81,16 +90,21 @@ void attitudeInstrument(TFT_eSprite *spr) {
     // check if it's time to read data and update the filter
     millisNow = millis();
     if (millisNow - millisPrevious >= millisPerReading) {
-      millisPrevious = millisPrevious + millisPerReading;
+      millisPrevious += millisPerReading;
 
       if (bno085.dataAvailable()) {
+        justReset = false;
         quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
-      }
-
-      drawAttitude(spr, ypr.pitch, ypr.roll);
-      if ((millis() - millisBacklight) >= 1000) {
-        handleBacklight(100);
-        millisBacklight = millis();
+        drawAttitude(spr, ypr.pitch, ypr.roll);
+        if ((millis() - millisBacklight) >= 1000) {
+          handleBacklight(100);
+          millisBacklight = millis();
+        }
+      } else {
+        missedReadings++;
+        if (missedReadings > 50 || ((!justReset) && (missedReadings > 20))) {
+          resetAttitude();
+        }
       }
     }
     if (clickType(1) == 1) {
