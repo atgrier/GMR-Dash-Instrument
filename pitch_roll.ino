@@ -121,7 +121,7 @@ void attitudeInstrument(TFT_eSprite *spr) {
 }
 
 void drawAttitude(TFT_eSprite *spr, float roll, float pitch) {
-  drawBackground(spr, pitch + 90 - 10);  // TODO: Calibrate zero pitch offset
+  drawBackground(spr, pitch + 90 - 25);  // TODO: Calibrate zero pitch offset
   drawForeground(spr, roll * ROLL_MULTIPLIER);  // TODO: Calibrate zero roll offset
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
