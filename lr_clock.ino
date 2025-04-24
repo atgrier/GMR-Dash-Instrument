@@ -16,6 +16,7 @@ Get RTC Time: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#get-
 #define COLOR_MH_NIGHT 0x7F4E
 #define COLOR_HH_NIGHT 0x772C
 
+uint16_t color_bg = COLOR_BG;
 uint16_t color_fg = COLOR_FG;
 uint16_t color_mh = COLOR_MH;
 uint16_t color_hh = COLOR_HH;
@@ -46,11 +47,23 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi48);
   spr->setTextDatum(MC_DATUM);
+  if (handleBacklight(100)) {
+    color_bg = COLOR_BG_NIGHT;
+    color_fg = COLOR_FG_NIGHT;
+    color_mh = COLOR_MH_NIGHT;
+    color_hh = COLOR_HH_NIGHT;
+  } else {
+    color_bg = COLOR_BG;
+    color_fg = COLOR_FG;
+    color_mh = COLOR_MH;
+    color_hh = COLOR_HH;
+  }
 
   syncTime();
   drawClock(spr, hlpr);
   getTimeFromVehicle();
   unsigned long lastCheckTime = millis();
+  unsigned long lastBacklightTime = millis();
 
   // Time for next tick
   unsigned long previousTime = 0;
@@ -58,7 +71,24 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 
   while (true) {
     currentTime = millis();
-    if ((!clockInitialized) && (currentTime - lastCheckTime >= 60000)) { getTimeFromVehicle(); }
+    if ((!clockInitialized) && (currentTime - lastCheckTime >= 60000)) {
+      getTimeFromVehicle();
+      lastCheckTime = millis();
+    }
+    if (currentTime - lastBacklightTime >= 1000) {
+      if (handleBacklight(100)) {
+        color_bg = COLOR_BG_NIGHT;
+        color_fg = COLOR_FG_NIGHT;
+        color_mh = COLOR_MH_NIGHT;
+        color_hh = COLOR_HH_NIGHT;
+      } else {
+        color_bg = COLOR_BG;
+        color_fg = COLOR_FG;
+        color_mh = COLOR_MH;
+        color_hh = COLOR_HH;
+      }
+      lastBacklightTime = currentTime;
+    }
     if (currentTime - previousTime >= 100) {
       // Update next tick time in 100 milliseconds for smooth movement
       previousTime = currentTime;
@@ -70,15 +100,6 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
       }
 
       drawClock(spr, hlpr);
-      if (handleBacklight(100)) {
-        color_fg = COLOR_FG_NIGHT;
-        color_mh = COLOR_MH_NIGHT;
-        color_hh = COLOR_HH_NIGHT;
-      } else {
-        color_fg = COLOR_FG;
-        color_mh = COLOR_MH;
-        color_hh = COLOR_HH;
-      }
     }
     int8_t click = clickType(3);
     if (click == 1) {
@@ -93,15 +114,15 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 }
 
 void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr) {
-  spr->setTextColor(color_fg, COLOR_BG);  // TODO: evaluate need for background here
+  spr->setTextColor(color_fg, color_bg);  // TODO: evaluate need for background here
   renderFace(spr);
   renderHands(hlpr);
-  hlpr->pushToSprite(spr, 0, 0, COLOR_BG);
+  hlpr->pushToSprite(spr, 0, 0, color_bg);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
 
 void renderFace(TFT_eSprite *spr) {
-  spr->fillSprite(COLOR_BG);
+  spr->fillSprite(color_bg);
 
   // Text offset adjustment
   constexpr uint32_t dialRadius = CARD_R - 24;
@@ -115,7 +136,7 @@ void renderFace(TFT_eSprite *spr) {
     getCoord(CARD_C, CARD_C, &xp, &yp, CARD_R - TICK_HEIGHT, 30 * tickPositions[h]);
     getCoord(CARD_C, CARD_C, &xt, &yt, CARD_R + TICK_HEIGHT + 2, 30 * tickPositions[h]);
     spr->drawWideLine(xp, yp, xt, yt, TICK_WIDTH, color_fg);
-    spr->fillSmoothCircle(CARD_C, CARD_C, CARD_R - TICK_HEIGHT, COLOR_BG);
+    spr->fillSmoothCircle(CARD_C, CARD_C, CARD_R - TICK_HEIGHT, color_bg);
   }
 
   spr->drawNumber(1, CARD_C - 14, CARD_C - dialRadius + 6);
@@ -130,19 +151,19 @@ void renderHands(TFT_eSprite *hlpr) {
   float m_angle = time_secs * MINUTE_ANGLE;
 
   // The hands are completely redrawn - this can be done quickly
-  hlpr->fillSprite(COLOR_BG);
+  hlpr->fillSprite(color_bg);
 
   float xp = 0.0, yp = 0.0;  // Use float pixel position for smooth AA motion
 
   // Draw hour hand
   getCoord(CARD_C, CARD_C, &xp, &yp, H_HAND_LENGTH, h_angle - 90);
   hlpr->drawWedgeLine(CARD_C, CARD_C, xp, yp, 10.0, 6.0, color_hh);
-  hlpr->drawArc(CARD_C, CARD_C, H_HAND_LENGTH + 8, H_HAND_LENGTH, 0, 360, COLOR_BG, 0x00FFFFFF);
+  hlpr->drawArc(CARD_C, CARD_C, H_HAND_LENGTH + 8, H_HAND_LENGTH, 0, 360, color_bg, 0x00FFFFFF);
 
   // Draw minute hand
   getCoord(CARD_C, CARD_C, &xp, &yp, M_HAND_LENGTH, m_angle - 90);
   hlpr->drawWedgeLine(CARD_C, CARD_C, xp, yp, 8.0, 4.0, color_mh);
-  hlpr->drawArc(CARD_C, CARD_C, M_HAND_LENGTH + 8, M_HAND_LENGTH, 0, 360, COLOR_BG, 0x00FFFFFF);
+  hlpr->drawArc(CARD_C, CARD_C, M_HAND_LENGTH + 8, M_HAND_LENGTH, 0, 360, color_bg, 0x00FFFFFF);
 
   // Draw the central pivot circle
   hlpr->fillSmoothCircle(CARD_C, CARD_C, 21, COLOR_PIVOT);
@@ -202,7 +223,7 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
         // Serial.printf("Timeout: only %d bytes is read\n", bytes_read);
         continue;
       }
-      // Serial.println(buf[0]);
+      // Serial.printf("ID: %02X\n", buf[0]);
       if (buf[0] != 0xF0) {
         continue;
       }
