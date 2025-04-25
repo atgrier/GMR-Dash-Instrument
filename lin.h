@@ -10,4 +10,6 @@
 #define HOUR_MASK 0x1F
 
 void getTimeFromVehicle(bool force = false, uint32_t timeout = 1000);
+void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false);
+void syncTime(bool get_time = true);
 I2C_BM8563_TimeTypeDef timeStruct;

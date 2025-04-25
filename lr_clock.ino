@@ -32,6 +32,12 @@ uint16_t color_hh = COLOR_HH;
 #define MINUTE_ANGLE (SECOND_ANGLE / 60.0)
 #define HOUR_ANGLE (MINUTE_ANGLE / 12.0)
 
+#define SETTING_WIDTH 60
+#define SETTING_H_HEIGHT 50
+#define SETTING_M_HEIGHT 70
+#define SETTING_BASE_OFFSET 10
+#define SETTING_LATERAL_OFFSET 65
+
 float time_secs = 0;
 bool clockInitialized = false;
 I2C_BM8563 rtc(I2C_BM8563_DEFAULT_ADDRESS, Wire);
@@ -92,18 +98,14 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
     if (currentTime - previousTime >= 100) {
       // Update next tick time in 100 milliseconds for smooth movement
       previousTime = currentTime;
-
-      // Midnight roll-over
       syncTime();
-      if (time_secs >= 86400) {
-        time_secs -= 86400;
-      }
-
       drawClock(spr, hlpr);
     }
     int8_t click = clickType(3);
     if (click == 1) {
       break;
+    } else if (click == -1) {
+      getTimeFromFingers(spr, hlpr);
     } else if (click == 2) {
       getTimeFromVehicle(true);
     } else if (click == 3) {
@@ -113,12 +115,53 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   }
 }
 
-void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr) {
+void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode) {
   spr->setTextColor(color_fg, color_bg);  // TODO: evaluate need for background here
   renderFace(spr);
+  if (setting_mode) { renderButtons(spr); }
   renderHands(hlpr);
   hlpr->pushToSprite(spr, 0, 0, color_bg);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
+}
+
+void renderButtons(TFT_eSprite *spr) {
+  uint16_t button_color = 0xAD55;
+  spr->fillTriangle(
+    CARD_C - SETTING_LATERAL_OFFSET,
+    CARD_C - SETTING_BASE_OFFSET - SETTING_H_HEIGHT,
+    CARD_C - SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+    CARD_C - SETTING_BASE_OFFSET,
+    CARD_C - SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+    CARD_C - SETTING_BASE_OFFSET,
+    button_color
+  );
+  spr->fillTriangle(
+    CARD_C - SETTING_LATERAL_OFFSET,
+    CARD_C + SETTING_BASE_OFFSET + SETTING_H_HEIGHT,
+    CARD_C - SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+    CARD_C + SETTING_BASE_OFFSET,
+    CARD_C - SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+    CARD_C + SETTING_BASE_OFFSET,
+    button_color
+  );
+  spr->fillTriangle(
+    CARD_C + SETTING_LATERAL_OFFSET,
+    CARD_C - SETTING_BASE_OFFSET - SETTING_M_HEIGHT,
+    CARD_C + SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+    CARD_C - SETTING_BASE_OFFSET,
+    CARD_C + SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+    CARD_C - SETTING_BASE_OFFSET,
+    button_color
+  );
+  spr->fillTriangle(
+    CARD_C + SETTING_LATERAL_OFFSET,
+    CARD_C + SETTING_BASE_OFFSET + SETTING_M_HEIGHT,
+    CARD_C + SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+    CARD_C + SETTING_BASE_OFFSET,
+    CARD_C + SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+    CARD_C + SETTING_BASE_OFFSET,
+    button_color
+  );
 }
 
 void renderFace(TFT_eSprite *spr) {
@@ -179,9 +222,13 @@ F0  01  2D  51  00                      80
     ^^ I supect this is seconds, it seems to have reset every time I changed something
 
 */
-void syncTime(void) {
-  rtc.getTime(&timeStruct);
+void syncTime(bool get_time) {
+  if (get_time) { rtc.getTime(&timeStruct); }
   time_secs = (timeStruct.hours * 3600) + (timeStruct.minutes * 60) + timeStruct.seconds;
+  // Midnight roll-over
+  if (time_secs >= 86400) {
+    time_secs -= 86400;
+  }
 }
 
 void getTimeFromVehicle(bool force, uint32_t timeout) {
@@ -255,4 +302,38 @@ void getTimeFromVehicle(bool force, uint32_t timeout) {
     }
   }
   attachSleepInterrupt();
+}
+
+void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
+  Serial.println("Setting time.");
+  uint8_t touch_padding = 5;
+
+  lv_indev_state_t prev_state = LV_INDEV_STATE_REL;
+  lv_indev_data_t data;
+  unsigned long last_touch = millis();
+
+  while (millis() - last_touch < 10000) {
+    syncTime(false);
+    drawClock(spr, hlpr, true);
+    read_screen(&data);
+    if (data.state != prev_state) {
+      prev_state = data.state;
+      if (data.state == LV_INDEV_STATE_REL) {
+        if ((data.point.x < CARD_C - touch_padding) && (data.point.y < CARD_C - touch_padding)) {
+          timeStruct.hours++;
+        } else if  ((data.point.x < CARD_C - touch_padding) && (data.point.y > CARD_C + touch_padding)) {
+          timeStruct.hours--;
+        } else if ((data.point.x > CARD_C + touch_padding) && (data.point.y < CARD_C - touch_padding)) {
+          timeStruct.minutes++;
+        } else if  ((data.point.x > CARD_C + touch_padding) && (data.point.y > CARD_C + touch_padding)) {
+          timeStruct.minutes--;
+        }
+      }
+    }
+    if (data.state == LV_INDEV_STATE_PR) {
+      last_touch = millis();
+    }
+  }
+
+  rtc.setTime(&timeStruct);
 }
