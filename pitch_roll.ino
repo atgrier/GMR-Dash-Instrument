@@ -40,7 +40,7 @@ struct euler_t {
 } ypr;
 void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data);
 
-void setupAttitude() {
+void setupIMU() {
   unsigned long start = millis();
 #ifdef XIAO_ESP32S3
   while (!bno085.begin(BNO085_ADDR)) {
@@ -56,22 +56,22 @@ void setupAttitude() {
   }
   Serial.println("BNO08x Found!");
   bno085.enableRotationVector(millisPerReading);
-  attitudeInitialized = true;
+  imuInitialized = true;
 }
 
-void resetAttitude() {
+void resetIMU() {
   bno085.modeSleep();
   delay(10);
-  attitudeInitialized = false;
+  imuInitialized = false;
   missedReadings = 0;
   justReset = true;
-  setupAttitude();
+  setupIMU();
 }
 
 void attitudeInstrument(TFT_eSprite *spr) {
-  if (!attitudeInitialized) {
-    setupAttitude();
-    if (!attitudeInitialized) {
+  if (!imuInitialized) {
+    setupIMU();
+    if (!imuInitialized) {
       return;
     }
   }
@@ -102,7 +102,7 @@ void attitudeInstrument(TFT_eSprite *spr) {
       } else {
         missedReadings++;
         if (missedReadings > 50 || ((!justReset) && (missedReadings > 20))) {
-          resetAttitude();
+          resetIMU();
         }
       }
     }
@@ -110,8 +110,8 @@ void attitudeInstrument(TFT_eSprite *spr) {
     if (click == 1) {
       break;
     } else if (click == 2) {
-      if (attitudeInitialized) {
-        resetAttitude();
+      if (imuInitialized) {
+        resetIMU();
       }
     } else if (click == 3) {
       goToSleep();

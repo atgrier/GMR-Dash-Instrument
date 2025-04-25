@@ -8,7 +8,7 @@ Sleep.
 unsigned long lastLinTime;
 
 void goToSleep() {
-  if (attitudeInitialized) {
+  if (imuInitialized) {
     bno085.modeSleep();
   }
   delay(10);
