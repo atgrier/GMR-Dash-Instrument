@@ -45,6 +45,7 @@ Common settings.
 #define COLOR_FG_NIGHT 0x774D
 
 #define DEG2RAD 0.0174532925
+#define MM2PX 7.3846153846
 #define CARD_SIZE 240.0f
 #define CARD_R (CARD_SIZE / 2.0f)
 #define CENTER_OFFSET ((CARD_SIZE - SCREEN_SIZE) / 2.0f)  // To the left and up (negative in both X and Y)

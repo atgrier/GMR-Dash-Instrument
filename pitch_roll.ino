@@ -28,7 +28,7 @@ BNO080 bno085;
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
 
-bool attitudeInitialized = false;
+bool imuInitialized = false;
 uint8_t millisPerReading = 50;
 uint8_t missedReadings = 0;
 bool justReset = true;
@@ -68,7 +68,7 @@ void resetIMU() {
   setupIMU();
 }
 
-void attitudeInstrument(TFT_eSprite *spr) {
+void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_type) {
   if (!imuInitialized) {
     setupIMU();
     if (!imuInitialized) {
@@ -82,9 +82,12 @@ void attitudeInstrument(TFT_eSprite *spr) {
 
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi24);
+  hlpr->loadFont(EurostileLTProDemi24);
 
   // The background colour will be read during the character rendering
   spr->setTextColor(COLOR_FG);
+  hlpr->setTextColor(COLOR_FG);
+  hlpr->setTextDatum(MC_DATUM);
 
   while (true) {
     millisNow = millis();
@@ -94,7 +97,14 @@ void attitudeInstrument(TFT_eSprite *spr) {
       if (bno085.dataAvailable()) {
         justReset = false;
         quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
-        drawAttitude(spr, ypr.pitch, ypr.roll);
+        switch (instr_type) {
+          case ATTITUDE:
+            drawAttitude(spr, ypr.pitch, ypr.roll);
+            break;
+          case COMPASS:
+            drawCompass(spr, hlpr, -ypr.yaw);
+            break;
+        }
         if ((millis() - millisBacklight) >= 1000) {
           handleBacklight(100);
           millisBacklight = millis();
@@ -242,8 +252,8 @@ void drawForeground(TFT_eSprite *spr, float roll) {
 void mmToPx(float x, float y, float *xp, float *yp, float roll) {
   float _sin = sin((roll)*DEG2RAD);
   float _cos = cos((roll)*DEG2RAD);
-  float _x = (240.0 / 32.5) * x;
-  float _y = (240.0 / 32.5) * y;
+  float _x = MM2PX * x;
+  float _y = MM2PX * y;
   *xp = (_x * _cos) - (_y * _sin);
   *yp = (_y * _cos) + (_x * _sin);
 }
@@ -257,4 +267,114 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data) {
   _data->yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) / DEG2RAD;
   _data->pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) / DEG2RAD;
   _data->roll = atan2(2.0 * (qj * qk + qi * qr), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
+}
+
+void drawCompass(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading) {
+  spr->fillSprite(COLOR_BG);
+  float xp = 0.0, yp = 0.0;
+  float xt = 0.0, yt = 0.0;
+  char words[][10] = {"N", "3", "6", "E", "12", "15", "S", "21", "24", "W", "30", "33"};
+
+  float c180 = cos(180 * DEG2RAD);
+  float s180 = sin(180 * DEG2RAD);
+  float tick_specs[][2] = {{15, 0}, {6, 5}};
+  for (uint8_t j = 0; j < 2; j++) {
+    for (uint8_t i = 0; i < 18; i++) {
+      getCoord(0, 0, &xp, &yp, CARD_R, tick_specs[j][1] + (10 * i) - heading);
+      getCoord(0, 0, &xt, &yt, CARD_R - tick_specs[j][0], tick_specs[j][1] + (10 * i) - heading);
+      spr->drawWideLine(CARD_C + xp, CARD_C - yp, CARD_C + xt, CARD_C - yt, 2.0f, COLOR_FG);
+      spr->drawWideLine(CARD_C + (xp * c180) + (yp * s180), CARD_C - ((yp * c180) - (xp * s180)), CARD_C + (xt * c180) + (yt * s180), CARD_C - ((yt * c180) - (xt * s180)), 2.0f, COLOR_FG);
+    }
+  }
+
+  hlpr->setPivot(32, CARD_R - 12 - 10);
+  for (uint8_t i = 0; i < 12; i++) {
+    hlpr->fillSprite(COLOR_BG);
+    hlpr->drawString(words[i], 32, 12);
+    hlpr->pushRotated(spr, (30 * i) + heading, COLOR_BG);
+  }
+
+  spr->fillTriangle(CARD_C, 10, CARD_C - 20, 25, CARD_C + 20, 25, 0xF81E);
+  spr->drawWideLine(CARD_C, CARD_C + 105, CARD_C, CARD_C - 105, 6.0f, 0XF81E);
+
+  float arcs[][4][2] = {  // Center, Radius, Start, End
+    // {{0, -1.567}, {8.851, 0}, {0, 7.285}, {1.495, 7.157}},
+    // {{1.256, 5.762}, {1.415, 0}, {1.495, 7.157}, {2.451, 6.520}},
+    // {{2.108, 5.945}, {0.670, 0}, {2.451, 6.520}, {2.777, 5.983}},
+    // {{0, -0.074}, {6.790, 0}, {0, 6.716}, {1.563, 6.534}},
+    // {{1.270, 5.295}, {1.273, 0}, {1.563, 6.534}, {2.299, 6.045}},
+    {{0, -0.547}, {4.503, 0}, {0, 3.956}, {2.466, 3.221}},
+    // {{1.129, 4.050}, {1.756, 0}, {2.882, 4.150}, {2.750, 3.375}},
+    // {{-86.940, -0.332}, {89.766, 0}, {2.750, 3.375}, {2.802, -2.426}},
+    // {{1.514, -3.054}, {1.433, 0}, {2.802, -2.426}, {2.946, -3.109}},
+    // {{1.601, -4.694}, {1.282, 0}, {2.882, -4.744}, {2.615, -5.479}},
+    {{0, -3.312}, {5.026, 0}, {0, 1.714}, {2.076, 1.265}},
+    {{0, -3.417}, {4.363, 0}, {0, 0.945}, {1.432, 0.704}},
+    {{0, -6.620}, {6.224, 0}, {0, -0.396}, {1.432, -0.563}},
+    {{0, -9.117}, {7.506, 0}, {0, -1.612}, {2.005, -1.884}},
+    // {{0, 5.422}, {11.890, 0}, {1.885, -6.318}, {0, -6.468}},
+    // {{1.849, -6.146}, {0.718, 0}, {2.566, -6.195}, {1.977, -6.853}},
+    // {{1.303, -6.108}, {1.266, 0}, {2.566, -6.195}, {1.944, -7.200}},
+    // {{0, 15.053}, {22.337, 0}, {1.944, -7.200}, {0, -7.285}}
+  };
+  float lines[][2][2] = {  // Start, End
+    {{2.777, 5.983}, {2.822, 4.150}},
+    {{2.299, 6.045}, {2.466, 3.221}},
+    {{2.466, 3.221}, {2.076, 1.265}},
+    {{2.076, 1.265}, {2.005, -1.884}},
+    {{1.432, 0.704}, {1.432, -0.563}},
+    {{2.005, -1.884}, {1.885, -6.318}},
+    {{2.946, -3.109}, {2.882, -4.744}},
+    {{2.615, -5.479}, {2.566, -6.195}},
+    {{1.977, -6.853}, {0, -6.908}},
+    // Mirror
+    {{2.763, 1.944}, {3.387, 1.768}},
+    {{3.387, 1.768}, {3.341, 2.110}},
+    {{3.341, 2.110}, {2.759, 2.333}},
+    // Arcs that I have given up on
+    {{1.495, 7.157}, {2.451, 6.520}},
+    {{2.451, 6.520}, {2.777, 5.983}},
+    {{1.563, 6.534}, {2.299, 6.045}},
+    {{2.882, 4.150}, {2.750, 3.375}},
+    {{2.750, 3.375}, {2.802, -2.426}},
+    {{2.802, -2.426}, {2.946, -3.109}},
+    {{2.882, -4.744}, {2.615, -5.479}},
+    {{2.566, -6.195}, {1.977, -6.853}},
+    {{2.566, -6.195}, {1.944, -7.200}},
+    // Other arcs
+    {{0, 7.285}, {1.495, 7.157}},
+    {{0, 6.716}, {1.563, 6.534}},
+    {{1.885, -6.318}, {0, -6.468}},
+    {{1.944, -7.200}, {0, -7.285}}
+  };
+
+  float rad, _rad = 0;
+  float thick = 1.0f;
+  for (uint8_t i = 0; i < 5; i++) {
+    xp = arcs[i][0][0] * MM2PX;
+    yp = arcs[i][0][1] * MM2PX;
+    rad = arcs[i][1][0] * MM2PX;
+    float start = (-getAngle(arcs[i][0][0], arcs[i][0][1], arcs[i][2][0], arcs[i][2][1])) + 270;
+    float end = (-getAngle(arcs[i][0][0], arcs[i][0][1], arcs[i][3][0], arcs[i][3][1])) + 270;
+    Serial.println(start);
+    Serial.println(end);
+    for (int8_t k = 1; k > -2; k -= 2){
+      if (k < 0) {
+        start = (start * -1) + 360;
+        end = (end * -1) + 360;
+      }
+      spr->drawSmoothArc(CARD_C + (xp * k), CARD_C - yp, rad + (thick / 2), rad - (thick / 2), min(start, end), max(start, end), COLOR_FG, 0x00FFFFFF, true);
+    }
+  }
+  for (uint8_t i = 0; i < 25; i++) {
+    xp = lines[i][0][0] * MM2PX;
+    yp = lines[i][0][1] * MM2PX;
+    xt = lines[i][1][0] * MM2PX;
+    yt = lines[i][1][1] * MM2PX;
+    for (int8_t k = 1; k > -2; k -= 2){
+      spr->drawWideLine(CARD_C + (xp * k), CARD_C - yp, CARD_C + (xt * k), CARD_C - yt, thick * 2, COLOR_FG, 0x00FFFFFF);
+    }
+  }
+
+  spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }

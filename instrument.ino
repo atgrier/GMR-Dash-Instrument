@@ -12,10 +12,16 @@ Touch: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#touch-funct
 
 TFT_eSprite instrument = TFT_eSprite(&tft);
 TFT_eSprite helper = TFT_eSprite(&tft);
+TFT_eSprite small_helper = TFT_eSprite(&tft);
 
 uint8_t instr = 0;
 uint8_t instr_prev = -1;
 uint8_t vehicle_brightness = 0;
+
+enum imu_instrument_t {
+    ATTITUDE,
+    COMPASS
+};
 
 // TODO: Generally add error handling for instruments and external calls
 
@@ -33,6 +39,7 @@ void setup() {
   xiao_disp_init();
   instrument.createSprite(CARD_SIZE, CARD_SIZE);
   helper.createSprite(CARD_SIZE, CARD_SIZE);
+  small_helper.createSprite(64, 24);
 
   pinMode(TOUCH_INT, INPUT_PULLUP);
   pinMode(VEHICLE_BACKLIGHT, INPUT);
@@ -54,11 +61,13 @@ void loop() {
   if (instr == 0) {
     clockInstrument(&instrument, &helper);
   } else if (instr == 1) {
-    attitudeInstrument(&instrument);
+    imuInstrument(&instrument, &helper, ATTITUDE);
+  } else if (instr == 2) {
+    imuInstrument(&instrument, &small_helper, COMPASS);
   }
   delay(200);
   instr++;
-  if (instr > 1) { instr = 0; }
+  if (instr > 2) { instr = 0; }
 }
 
 /* clickType
@@ -125,4 +134,8 @@ void getCoord(float x, float y, float *xp, float *yp, float r, float a) {
   float sy1 = sin(a * DEG2RAD);
   *xp = sx1 * r + x;
   *yp = sy1 * r + y;
+}
+
+float getAngle(float x_c, float y_c, float x, float y) {
+  return atan2(y - y_c, x - x_c) / DEG2RAD;
 }
