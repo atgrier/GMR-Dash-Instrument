@@ -59,7 +59,7 @@ void setup() {
 // =========================================================================
 void loop() {
   if (instr == 0) {
-    clockInstrument(&instrument, &helper);
+    clockInstrument(&instrument, &helper, true);
   } else if (instr == 1) {
     imuInstrument(&instrument, &helper, ATTITUDE);
   } else if (instr == 2) {

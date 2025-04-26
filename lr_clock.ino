@@ -44,7 +44,7 @@ I2C_BM8563 rtc(I2C_BM8563_DEFAULT_ADDRESS, Wire);
 SoftwareLin swLin(VEHICLE_LIN, -1);
 bool timeInitialized = false;
 
-void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
+void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
   if (!clockInitialized) {
     rtc.begin();
     clockInitialized = true;
@@ -67,7 +67,9 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 
   syncTime();
   drawClock(spr, hlpr);
-  getTimeFromVehicle();
+  if (!no_lin) {
+    getTimeFromVehicle();
+  }
   unsigned long lastCheckTime = millis();
   unsigned long lastBacklightTime = millis();
 
@@ -77,7 +79,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 
   while (true) {
     currentTime = millis();
-    if ((!clockInitialized) && (currentTime - lastCheckTime >= 60000)) {
+    if ((!no_lin) && (!clockInitialized) && (currentTime - lastCheckTime >= 60000)) {
       getTimeFromVehicle();
       lastCheckTime = millis();
     }
@@ -106,7 +108,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr) {
       break;
     } else if (click == -1) {
       getTimeFromFingers(spr, hlpr);
-    } else if (click == 2) {
+    } else if ((!no_lin) && (click == 2)) {
       getTimeFromVehicle(true);
     } else if (click == 3) {
       goToSleep();
