@@ -185,62 +185,50 @@ void drawForeground(TFT_eSprite *spr, float roll) {
   // Draw center marker
   spr->fillSmoothCircle(CARD_C, CARD_C, 4, COLOR_CAR);
 
-  // Draw center car, all dimensions in milimeters from center
-  float car[][2] = {
-    // Bottom Center, moving rightwards
-    { 0.0, -1.541 },
-    { 1.998, -1.541 },
-    { 1.998, -2.896 },
-    { 2.777, -2.896 },
-    { 2.777, -1.270 },
-    { 2.946, -0.085 },
-    { 2.811, 0.152 },
-    { 2.726, 0.729 },
-    { 2.151, 2.591 },
-    { 1.829, 2.896 },
-    { 0.0, 2.896 }
+  float symbols[3][11][2] = {
+    {
+      // Car (mm), starting at bottom center, moving rightwards
+      { 0.0, -1.541 },
+      { 1.998, -1.541 },
+      { 1.998, -2.896 },
+      { 2.777, -2.896 },
+      { 2.777, -1.270 },
+      { 2.946, -0.085 },
+      { 2.811, 0.152 },
+      { 2.726, 0.729 },
+      { 2.151, 2.591 },
+      { 1.829, 2.896 },
+      { 0.0, 2.896 }
+    }, {
+      // Right Mirror, starting at bottom left, moving rightwards
+      { 2.701, 0.809 },
+      { 3.269, 0.809 },
+      { 3.387, 0.935 },
+      { 3.387, 1.282 },
+      { 3.242, 1.386 },
+      { 2.688, 1.386 },
+      { 2.584, 1.190 }
+    }, {
+      // Asymmetric Boot, starting at left, moving rightwards
+      { -2.679, 0.882 },
+      { -0.690, 0.882 },
+      { -0.169, 0.172 },
+      { 2.808, 0.172 }
+    },
   };
-  float mirror[][2] = {
-    // Right Mirror, starting at bottom left, moving rightwards
-    { 2.701, 0.809 },
-    { 3.269, 0.809 },
-    { 3.387, 0.935 },
-    { 3.387, 1.282 },
-    { 3.242, 1.386 },
-    { 2.688, 1.386 },
-    { 2.584, 1.190 }
-  };
-  float boot[][2] = {
-    // Asymmetric Boot, starting at left, moving rightwards
-    { -2.679, 0.882 },
-    { -0.690, 0.882 },
-    { -0.169, 0.172 },
-    { 2.808, 0.172 }
-  };
+  uint8_t arr_bounds[] = {11, 7, 4};
 
-  float xp = 0.0, yp = 0.0;  // Use float pixel position for smooth AA motion
-  float xt = 0.0, yt = 0.0;  // Use float pixel position for smooth AA motion
+  float xp = 0.0, yp = 0.0;
+  float xt = 0.0, yt = 0.0;
 
-  for (uint8_t i = 0; i < 10; i++) {
-    mmToPx(car[i][0], car[i][1], &xp, &yp, roll);
-    mmToPx(car[i + 1][0], car[i + 1][1], &xt, &yt, roll);
-    spr->drawWideLine(CARD_C + xp, CARD_C - yp, CARD_C + xt, CARD_C - yt, 2.0f, COLOR_CAR);
-    mmToPx(car[i][0], car[i][1], &xp, &yp, -roll);
-    mmToPx(car[i + 1][0], car[i + 1][1], &xt, &yt, -roll);
-    spr->drawWideLine(CARD_C - xp, CARD_C - yp, CARD_C - xt, CARD_C - yt, 2.0f, COLOR_CAR);
-  }
-  for (uint8_t i = 0; i < 6; i++) {
-    mmToPx(mirror[i][0], mirror[i][1], &xp, &yp, roll);
-    mmToPx(mirror[i + 1][0], mirror[i + 1][1], &xt, &yt, roll);
-    spr->drawWideLine(CARD_C + xp, CARD_C - yp, CARD_C + xt, CARD_C - yt, 2.0f, COLOR_CAR);
-    mmToPx(mirror[i][0], mirror[i][1], &xp, &yp, -roll);
-    mmToPx(mirror[i + 1][0], mirror[i + 1][1], &xt, &yt, -roll);
-    spr->drawWideLine(CARD_C - xp, CARD_C - yp, CARD_C - xt, CARD_C - yt, 2.0f, COLOR_CAR);
-  }
-  for (uint8_t i = 0; i < 3; i++) {
-    mmToPx(boot[i][0], boot[i][1], &xp, &yp, roll);
-    mmToPx(boot[i + 1][0], boot[i + 1][1], &xt, &yt, roll);
-    spr->drawWideLine(CARD_C + xp, CARD_C - yp, CARD_C + xt, CARD_C - yt, 2.0f, COLOR_CAR);
+  for (uint8_t j = 0; j < 3; j++){
+    for (uint8_t i = 0; i < arr_bounds[j] - 1; i++) {
+      for (int8_t k = 1; k > (j == 2 ? 0 : -2); k -= 2){
+        mmToPx(symbols[j][i][0], symbols[j][i][1], &xp, &yp, roll * k);
+        mmToPx(symbols[j][i + 1][0], symbols[j][i + 1][1], &xt, &yt, roll * k);
+        spr->drawWideLine(CARD_C + (xp * k), CARD_C - yp, CARD_C + (xt * k), CARD_C - yt, 2.0f, COLOR_CAR);
+      }
+    }
   }
 
   getCoord(0, 0, &xp, &yp, 44.0, -roll);
