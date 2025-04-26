@@ -39,7 +39,7 @@ void setup() {
   xiao_disp_init();
   instrument.createSprite(CARD_SIZE, CARD_SIZE);
   helper.createSprite(CARD_SIZE, CARD_SIZE);
-  small_helper.createSprite(64, 24);
+  small_helper.createSprite(HELPER_W, HELPER_H);
 
   pinMode(TOUCH_INT, INPUT_PULLUP);
   pinMode(VEHICLE_BACKLIGHT, INPUT);
