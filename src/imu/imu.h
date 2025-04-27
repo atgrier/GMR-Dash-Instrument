@@ -24,13 +24,15 @@
 
 #ifndef IMU_DEFINED
 #define IMU_DEFINED
-typedef struct euler_t {
+typedef struct euler_t
+{
   float yaw;
   float pitch;
   float roll;
 };
 
-enum imu_instrument_t {
+enum imu_instrument_t
+{
   ATTITUDE,
   COMPASS
 };
@@ -39,5 +41,5 @@ enum imu_instrument_t {
 void mmToPx(float x, float y, float *xp, float *yp, float roll);
 void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data);
 float getAngle(float x_c, float y_c, float x, float y);
-void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_type);
+void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type);
 void sleepIMU();

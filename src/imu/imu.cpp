@@ -21,17 +21,21 @@ euler_t ypr;
 /**
  * Initialize the BNO085 IMU.
  */
-void setupIMU() {
+void setupIMU()
+{
   unsigned long start = millis();
 #if defined(XIAO_ESP32S3)
-  while (!bno085.begin(BNO085_ADDR)) {
+  while (!bno085.begin(BNO085_ADDR))
+  {
 #elif defined(QTPY_ESP32S3)
-  while (!bno085.begin(BNO085_ADDR, &Wire1)) {
+  while (!bno085.begin(BNO085_ADDR, &Wire1))
+  {
 #else
-  #error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
+#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
     Serial.println("Failed to find BNO08x chip");
-    if (millis() - start > 1000) {
+    if (millis() - start > 1000)
+    {
       return;
     }
     delay(10);
@@ -44,7 +48,8 @@ void setupIMU() {
 /**
  * Re-initialze the BNO085 IMU, e.g. for when it stops providing data.
  */
-void resetIMU() {
+void resetIMU()
+{
   bno085.modeSleep();
   delay(10);
   imuInitialized = false;
@@ -56,8 +61,10 @@ void resetIMU() {
 /**
  * Put BNO085 IMU to sleep.
  */
-void sleepIMU() {
-  if (imuInitialized) {
+void sleepIMU()
+{
+  if (imuInitialized)
+  {
     bno085.modeSleep();
   }
   delay(10);
@@ -66,21 +73,25 @@ void sleepIMU() {
 /**
  * Activate the IMU instrument for either attitude or compass mode. This is the entry point which
  * should be called from the main instrument.
-*/
-void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_type) {
-  if (!imuInitialized) {
+ */
+void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type)
+{
+  if (!imuInitialized)
+  {
     setupIMU();
-    if (!imuInitialized) {
+    if (!imuInitialized)
+    {
       return;
     }
   }
-  switch (instr_type) {
-    case ATTITUDE:
-      setupAttitude();
-      break;
-    case COMPASS:
-      setupCompass();
-      break;
+  switch (instr_type)
+  {
+  case ATTITUDE:
+    setupAttitude();
+    break;
+  case COMPASS:
+    setupCompass(hlpr);
+    break;
   }
 
   unsigned long millisNow;
@@ -89,48 +100,62 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_t
 
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi24);
-  hlpr->loadFont(EurostileLTProDemi24);
+  word_hlpr->loadFont(EurostileLTProDemi24);
 
   // The background colour will be read during the character rendering
   spr->setTextColor(COLOR_FG);
-  hlpr->setTextColor(COLOR_FG);
-  hlpr->setTextDatum(MC_DATUM);
+  word_hlpr->setTextColor(COLOR_FG);
+  word_hlpr->setTextDatum(MC_DATUM);
 
-  while (true) {
+  while (true)
+  {
     millisNow = millis();
-    if (millisNow - millisPrevious >= millisPerReading) {
+    if (millisNow - millisPrevious >= millisPerReading)
+    {
       millisPrevious += millisPerReading;
 
-      if (bno085.dataAvailable()) {
+      if (bno085.dataAvailable())
+      {
         justReset = false;
         quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
-        switch (instr_type) {
-          case ATTITUDE:
-            drawAttitude(spr, ypr.pitch, ypr.roll);
-            break;
-          case COMPASS:
-            drawCompass(spr, hlpr, -ypr.yaw);
-            break;
+        switch (instr_type)
+        {
+        case ATTITUDE:
+          drawAttitude(spr, ypr.pitch, ypr.roll);
+          break;
+        case COMPASS:
+          drawCompass(spr, hlpr, word_hlpr, -ypr.yaw);
+          break;
         }
-        if ((millis() - millisBacklight) >= 1000) {
+        if ((millis() - millisBacklight) >= 1000)
+        {
           handleBacklight(100);
           millisBacklight = millis();
         }
-      } else {
+      }
+      else
+      {
         missedReadings++;
-        if (missedReadings > 50 || ((!justReset) && (missedReadings > 20))) {
+        if (missedReadings > 50 || ((!justReset) && (missedReadings > 20)))
+        {
           resetIMU();
         }
       }
     }
     int8_t click = clickType(3);
-    if (click == 1) {
+    if (click == 1)
+    {
       break;
-    } else if (click == 2) {
-      if (imuInitialized) {
+    }
+    else if (click == 2)
+    {
+      if (imuInitialized)
+      {
         resetIMU();
       }
-    } else if (click == 3) {
+    }
+    else if (click == 3)
+    {
       goToSleep();
     }
     checkSleep();
@@ -140,7 +165,8 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_t
 /**
  * Convert a position in MM to a pixel position, factoring in the bank angle.
  */
-void mmToPx(float x, float y, float *xp, float *yp, float roll) {
+void mmToPx(float x, float y, float *xp, float *yp, float roll)
+{
   float _sin = sin((roll)*DEG2RAD);
   float _cos = cos((roll)*DEG2RAD);
   float _x = MM2PX * x;
@@ -152,7 +178,8 @@ void mmToPx(float x, float y, float *xp, float *yp, float roll) {
 /**
  * Get Euler orientation angles from quaternion values.
  */
-void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data) {
+void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data)
+{
   float sqr = sq(qr);
   float sqi = sq(qi);
   float sqj = sq(qj);
@@ -166,6 +193,7 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data) {
 /**
  * Get arctangent angle of a position (x, y) relative to (x_c, y_c).
  */
-float getAngle(float x_c, float y_c, float x, float y) {
+float getAngle(float x_c, float y_c, float x, float y)
+{
   return atan2(y - y_c, x - x_c) / DEG2RAD;
 }

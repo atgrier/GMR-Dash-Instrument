@@ -7,7 +7,7 @@
 
 #define SCREEN_WIDTH SCREEN_SIZE
 #define SCREEN_HEIGHT SCREEN_SIZE
-#define LVGL_BUFF_SIZE 10  // Number of rows
+#define LVGL_BUFF_SIZE 10 // Number of rows
 
 #define CHSC6X_I2C_ID 0x2e
 #define CHSC6X_MAX_POINTS_NUM 1
@@ -17,4 +17,4 @@ void readScreen(lv_indev_data_t *data);
 bool chsc6x_is_pressed(void);
 void xiao_disp_init(void);
 void screenSleep();
-TFT_eSPI* getTft();
+TFT_eSPI *getTft();

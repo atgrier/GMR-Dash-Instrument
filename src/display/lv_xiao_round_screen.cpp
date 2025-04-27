@@ -34,7 +34,6 @@ void xiao_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *col
   tft.pushColors(px_buf, w * h, true);
   tft.endWrite();
 
-
 #if LVGL_VERSION_MAJOR == 9
   lv_display_flush_ready(disp);
 #elif LVGL_VERSION_MAJOR == 8
@@ -42,9 +41,10 @@ void xiao_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *col
 #endif
 }
 
-void xiao_disp_init(void) {
+void xiao_disp_init(void)
+{
 #if XIAO_BL > 0
-  pinMode(XIAO_BL, OUTPUT);  //Turn on screen backlight
+  pinMode(XIAO_BL, OUTPUT); // Turn on screen backlight
   digitalWrite(XIAO_BL, HIGH);
 #endif
 
@@ -53,7 +53,8 @@ void xiao_disp_init(void) {
   tft.fillScreen(COLOR_BG);
 }
 
-void lv_xiao_disp_init(void) {
+void lv_xiao_disp_init(void)
+{
   xiao_disp_init();
 
 #if LVGL_VERSION_MAJOR == 9
@@ -83,8 +84,10 @@ void lv_xiao_disp_init(void) {
 /**
  * Read whether the screen is currently touched.
  */
-bool chsc6x_is_pressed(void) {
-  if (digitalRead(TOUCH_INT) != LOW) {
+bool chsc6x_is_pressed(void)
+{
+  if (digitalRead(TOUCH_INT) != LOW)
+  {
     delay(5);
     if (digitalRead(TOUCH_INT) != LOW)
       return false;
@@ -92,9 +95,11 @@ bool chsc6x_is_pressed(void) {
   return true;
 }
 
-void chsc6x_convert_xy(uint8_t *x, uint8_t *y) {
+void chsc6x_convert_xy(uint8_t *x, uint8_t *y)
+{
   uint8_t x_tmp = *x, y_tmp = *y, _end = 0;
-  for (int i = 1; i <= screen_rotation; i++) {
+  for (int i = 1; i <= screen_rotation; i++)
+  {
     x_tmp = *x;
     y_tmp = *y;
     _end = (i % 2) ? SCREEN_WIDTH : SCREEN_HEIGHT;
@@ -103,12 +108,15 @@ void chsc6x_convert_xy(uint8_t *x, uint8_t *y) {
   }
 }
 
-void chsc6x_get_xy(lv_coord_t *x, lv_coord_t *y) {
-  uint8_t temp[CHSC6X_READ_POINT_LEN] = { 0 };
+void chsc6x_get_xy(lv_coord_t *x, lv_coord_t *y)
+{
+  uint8_t temp[CHSC6X_READ_POINT_LEN] = {0};
   uint8_t read_len = Wire.requestFrom(CHSC6X_I2C_ID, CHSC6X_READ_POINT_LEN);
-  if (read_len == CHSC6X_READ_POINT_LEN) {
+  if (read_len == CHSC6X_READ_POINT_LEN)
+  {
     Wire.readBytes(temp, read_len);
-    if (temp[0] == 0x01) {
+    if (temp[0] == 0x01)
+    {
       chsc6x_convert_xy(&temp[2], &temp[4]);
       *x = temp[2];
       *y = temp[4];
@@ -122,9 +130,12 @@ void chsc6x_get_xy(lv_coord_t *x, lv_coord_t *y) {
 void readScreen(lv_indev_data_t *data)
 {
   lv_coord_t touchX, touchY;
-  if (!chsc6x_is_pressed()) {
+  if (!chsc6x_is_pressed())
+  {
     data->state = LV_INDEV_STATE_REL;
-  } else {
+  }
+  else
+  {
     data->state = LV_INDEV_STATE_PR;
     chsc6x_get_xy(&touchX, &touchY);
     /*Set the coordinates*/
@@ -138,12 +149,15 @@ void chsc6x_read(lv_indev_t *indev, lv_indev_data_t *data)
 #elif LVGL_VERSION_MAJOR == 8
 void chsc6x_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 #endif
-{ readScreen(data); }
+{
+  readScreen(data);
+}
 
-void lv_xiao_touch_init(void) {
+void lv_xiao_touch_init(void)
+{
   pinMode(TOUCH_INT, INPUT_PULLUP);
-  Wire.begin();  // Turn on the IIC bus for touch driver
-                 /*Initialize the touch driver for lvgl*/
+  Wire.begin(); // Turn on the IIC bus for touch driver
+                /*Initialize the touch driver for lvgl*/
 #if LVGL_VERSION_MAJOR == 9
   lv_indev_t *indev = lv_indev_create();
   lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
@@ -160,7 +174,8 @@ void lv_xiao_touch_init(void) {
 /**
  * Put the display to sleep.
  */
-void screenSleep() {
+void screenSleep()
+{
   tft.writecommand(0x10);
   delay(10);
 }
@@ -168,6 +183,7 @@ void screenSleep() {
 /**
  * Get the TFT_eSPI screen object.
  */
-TFT_eSPI* getTft() {
+TFT_eSPI *getTft()
+{
   return &tft;
 }

@@ -1,8 +1,8 @@
 /*
 I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against any background color, i.e. when passing in 0x00FFFFFF
 */
-#include "imu.h"
 #include "imu_compass.h"
+#include "imu.h"
 #include "../common.h"
 #include "../pins.h"
 #include "../screen.h"
@@ -10,11 +10,49 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 float compassArcs[10][3][2];
 float compassLines[50][2][2];
 
+/**
+ * Draw car and course reference line.
+ */
+void drawCar(TFT_eSprite *hlpr)
+{
+  uint8_t tip_w = 20;
+  uint8_t tip_h1 = 10;
+  uint8_t tip_h2 = 25;
+  uint8_t length = 105;
+  hlpr->fillSprite(COLOR_BG);
+  hlpr->fillTriangle(CARD_C, tip_h1, CARD_C - tip_w, tip_h2, CARD_C + tip_w, tip_h2, COLOR_HEADING);
+  hlpr->drawWideLine(CARD_C, CARD_C + length, CARD_C, CARD_C - length, 6.0f, COLOR_HEADING);
+
+  float thick = 1.0f;
+  float thick2 = thick / 2.;
+  for (uint8_t i = 0; i < 10; i++)
+  {
+    hlpr->drawSmoothArc(
+        compassArcs[i][0][0],
+        compassArcs[i][0][1],
+        compassArcs[i][1][0] + thick2,
+        compassArcs[i][1][0] - thick2,
+        compassArcs[i][2][0],
+        compassArcs[i][2][1],
+        COLOR_FG, 0x00FFFFFF, true);
+  }
+  for (uint8_t i = 0; i < 50; i++)
+  {
+    hlpr->drawWideLine(
+        compassLines[i][0][0],
+        compassLines[i][0][1],
+        compassLines[i][1][0],
+        compassLines[i][1][1],
+        thick * 2,
+        COLOR_FG, 0x00FFFFFF);
+  }
+}
 
 /**
- * Setup the compass instrument, i.e. pre-compute static trigonometric values.
+ * Setup the compass instrument, i.e. pre-compute static trigonometric values and draw car to the
+ * helper sprite.
  */
-void setupCompass()
+void setupCompass(TFT_eSprite *hlpr)
 {
   // Center, Radius, Start, End
   float arcs[5][4][2] = {
@@ -101,49 +139,14 @@ void setupCompass()
       index++;
     }
   }
-}
 
-/**
- * Draw car and course reference line.
- */
-void drawCar(TFT_eSprite *spr)
-{
-  uint8_t tip_w = 20;
-  uint8_t tip_h1 = 10;
-  uint8_t tip_h2 = 25;
-  uint8_t length = 105;
-  spr->fillTriangle(CARD_C, tip_h1, CARD_C - tip_w, tip_h2, CARD_C + tip_w, tip_h2, COLOR_HEADING);
-  spr->drawWideLine(CARD_C, CARD_C + length, CARD_C, CARD_C - length, 6.0f, COLOR_HEADING);
-
-  float thick = 1.0f;
-  float thick2 = thick / 2.;
-  for (uint8_t i = 0; i < 10; i++)
-  {
-    spr->drawSmoothArc(
-        compassArcs[i][0][0],
-        compassArcs[i][0][1],
-        compassArcs[i][1][0] + thick2,
-        compassArcs[i][1][0] - thick2,
-        compassArcs[i][2][0],
-        compassArcs[i][2][1],
-        COLOR_FG, 0x00FFFFFF, true);
-  }
-  for (uint8_t i = 0; i < 50; i++)
-  {
-    spr->drawWideLine(
-        compassLines[i][0][0],
-        compassLines[i][0][1],
-        compassLines[i][1][0],
-        compassLines[i][1][1],
-        thick * 2,
-        COLOR_FG, 0x00FFFFFF);
-  }
+  drawCar(hlpr);
 }
 
 /**
  * Draw compass scale at current heading.
  */
-void drawDial(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading)
+void drawDial(TFT_eSprite *spr, TFT_eSprite *word_hlpr, float heading)
 {
   float xp = 0.0, yp = 0.0;
   float xt = 0.0, yt = 0.0;
@@ -163,22 +166,22 @@ void drawDial(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading)
     }
   }
 
-  hlpr->setPivot(HELPER_W / 2, CARD_R - (HELPER_H / 2) - 10);
+  word_hlpr->setPivot(HELPER_W / 2, CARD_R - (HELPER_H / 2) - 10);
   for (uint8_t i = 0; i < 12; i++)
   {
-    hlpr->fillSprite(COLOR_BG);
-    hlpr->drawString(words[i], HELPER_W / 2, HELPER_H / 2);
-    hlpr->pushRotated(spr, (30 * i) + heading, COLOR_BG);
+    word_hlpr->fillSprite(COLOR_BG);
+    word_hlpr->drawString(words[i], HELPER_W / 2, HELPER_H / 2);
+    word_hlpr->pushRotated(spr, (30 * i) + heading, COLOR_BG);
   }
 }
 
 /**
  * Draw compass instrument at current heading.
  */
-void drawCompass(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading)
+void drawCompass(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, float heading)
 {
   spr->fillSprite(COLOR_BG);
-  drawDial(spr, hlpr, heading);
-  drawCar(spr);
+  drawDial(spr, word_hlpr, heading);
+  hlpr->pushToSprite(spr, 0, 0, COLOR_BG);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }

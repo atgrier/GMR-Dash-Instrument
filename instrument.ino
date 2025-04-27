@@ -27,10 +27,14 @@ uint8_t instr_prev = -1;
 // =========================================================================
 // Setup
 // =========================================================================
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   unsigned long start = millis();
-  while ((!Serial) && ((millis() - start) < 1000)) { delay(10); }
+  while ((!Serial) && ((millis() - start) < 1000))
+  {
+    delay(10);
+  }
   Serial.println("Booting...");
 
   wakeupCleanup();
@@ -50,22 +54,31 @@ void setup() {
   Wire1.begin();
   Wire1.setTimeout(4);
 #else
-  #error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
+#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
 }
 
 // =========================================================================
 // Loop
 // =========================================================================
-void loop() {
-  if (instr == 0) {
+void loop()
+{
+  if (instr == 0)
+  {
     clockInstrument(&instrument, &helper, true);
-  } else if (instr == 1) {
-    imuInstrument(&instrument, &helper, ATTITUDE);
-  } else if (instr == 2) {
-    imuInstrument(&instrument, &small_helper, COMPASS);
+  }
+  else if (instr == 1)
+  {
+    imuInstrument(&instrument, &helper, &small_helper, ATTITUDE);
+  }
+  else if (instr == 2)
+  {
+    imuInstrument(&instrument, &helper, &small_helper, COMPASS);
   }
   delay(200);
   instr++;
-  if (instr > 2) { instr = 0; }
+  if (instr > 2)
+  {
+    instr = 0;
+  }
 }

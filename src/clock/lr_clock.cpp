@@ -31,11 +31,16 @@ bool timeInitialized = false;
 /**
  * Update `time_secs` variable with seconds since midnight from the RTC.
  */
-void syncTime(bool get_time = true) {
-  if (get_time) { rtc.getTime(&timeStruct); }
+void syncTime(bool get_time = true)
+{
+  if (get_time)
+  {
+    rtc.getTime(&timeStruct);
+  }
   time_secs = (timeStruct.hours * 3600) + (timeStruct.minutes * 60) + timeStruct.seconds;
   // Midnight roll-over
-  if (time_secs >= 86400) {
+  if (time_secs >= 86400)
+  {
     time_secs -= 86400;
   }
 }
@@ -43,61 +48,60 @@ void syncTime(bool get_time = true) {
 /**
  * Draw triangular buttons used to indicated areas of screen to press for manually setting time.
  */
-void renderButtons(TFT_eSprite *spr) {
+void renderButtons(TFT_eSprite *spr)
+{
   uint16_t button_color = 0xAD55;
   spr->fillTriangle(
-    CARD_C - SETTING_LATERAL_OFFSET,
-    CARD_C - SETTING_BASE_OFFSET - SETTING_H_HEIGHT,
-    CARD_C - SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
-    CARD_C - SETTING_BASE_OFFSET,
-    CARD_C - SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
-    CARD_C - SETTING_BASE_OFFSET,
-    button_color
-  );
+      CARD_C - SETTING_LATERAL_OFFSET,
+      CARD_C - SETTING_BASE_OFFSET - SETTING_H_HEIGHT,
+      CARD_C - SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+      CARD_C - SETTING_BASE_OFFSET,
+      CARD_C - SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+      CARD_C - SETTING_BASE_OFFSET,
+      button_color);
   spr->fillTriangle(
-    CARD_C - SETTING_LATERAL_OFFSET,
-    CARD_C + SETTING_BASE_OFFSET + SETTING_H_HEIGHT,
-    CARD_C - SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
-    CARD_C + SETTING_BASE_OFFSET,
-    CARD_C - SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
-    CARD_C + SETTING_BASE_OFFSET,
-    button_color
-  );
+      CARD_C - SETTING_LATERAL_OFFSET,
+      CARD_C + SETTING_BASE_OFFSET + SETTING_H_HEIGHT,
+      CARD_C - SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+      CARD_C + SETTING_BASE_OFFSET,
+      CARD_C - SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+      CARD_C + SETTING_BASE_OFFSET,
+      button_color);
   spr->fillTriangle(
-    CARD_C + SETTING_LATERAL_OFFSET,
-    CARD_C - SETTING_BASE_OFFSET - SETTING_M_HEIGHT,
-    CARD_C + SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
-    CARD_C - SETTING_BASE_OFFSET,
-    CARD_C + SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
-    CARD_C - SETTING_BASE_OFFSET,
-    button_color
-  );
+      CARD_C + SETTING_LATERAL_OFFSET,
+      CARD_C - SETTING_BASE_OFFSET - SETTING_M_HEIGHT,
+      CARD_C + SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+      CARD_C - SETTING_BASE_OFFSET,
+      CARD_C + SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+      CARD_C - SETTING_BASE_OFFSET,
+      button_color);
   spr->fillTriangle(
-    CARD_C + SETTING_LATERAL_OFFSET,
-    CARD_C + SETTING_BASE_OFFSET + SETTING_M_HEIGHT,
-    CARD_C + SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
-    CARD_C + SETTING_BASE_OFFSET,
-    CARD_C + SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
-    CARD_C + SETTING_BASE_OFFSET,
-    button_color
-  );
+      CARD_C + SETTING_LATERAL_OFFSET,
+      CARD_C + SETTING_BASE_OFFSET + SETTING_M_HEIGHT,
+      CARD_C + SETTING_LATERAL_OFFSET + (SETTING_WIDTH / 2),
+      CARD_C + SETTING_BASE_OFFSET,
+      CARD_C + SETTING_LATERAL_OFFSET - (SETTING_WIDTH / 2),
+      CARD_C + SETTING_BASE_OFFSET,
+      button_color);
 }
 
 /**
  * Draw clock face, i.e. ticks and numbers.
  */
-void renderFace(TFT_eSprite *spr) {
+void renderFace(TFT_eSprite *spr)
+{
   spr->fillSprite(color_bg);
 
   // Text offset adjustment
   constexpr uint32_t dialRadius = CARD_R - 24;
   constexpr uint32_t hOffset = 4;
 
-  float xp = 0.0, yp = 0.0;  // Use float pixel position for smooth AA motion
-  float xt = 0.0, yt = 0.0;  // Use float pixel position for smooth AA motion
+  float xp = 0.0, yp = 0.0; // Use float pixel position for smooth AA motion
+  float xt = 0.0, yt = 0.0; // Use float pixel position for smooth AA motion
 
-  uint8_t tickPositions[] = { 1, 2, 4, 5, 7, 8, 10, 11 };
-  for (uint8_t h = 0; h < sizeof tickPositions / sizeof tickPositions[0]; h++) {
+  uint8_t tickPositions[] = {1, 2, 4, 5, 7, 8, 10, 11};
+  for (uint8_t h = 0; h < sizeof tickPositions / sizeof tickPositions[0]; h++)
+  {
     getCoord(CARD_C, CARD_C, &xp, &yp, CARD_R - TICK_HEIGHT, 30 * tickPositions[h]);
     getCoord(CARD_C, CARD_C, &xt, &yt, CARD_R + TICK_HEIGHT + 2, 30 * tickPositions[h]);
     spr->drawWideLine(xp, yp, xt, yt, TICK_WIDTH, color_fg);
@@ -111,18 +115,18 @@ void renderFace(TFT_eSprite *spr) {
   spr->drawNumber(9, CARD_C - dialRadius - hOffset, CARD_C + 2);
 }
 
-
 /**
  * Draw clock hands at the number of seconds since midnight.
  */
-void renderHands(TFT_eSprite *hlpr) {
+void renderHands(TFT_eSprite *hlpr)
+{
   float h_angle = time_secs * HOUR_ANGLE;
   float m_angle = time_secs * MINUTE_ANGLE;
 
   // The hands are completely redrawn - this can be done quickly
   hlpr->fillSprite(color_bg);
 
-  float xp = 0.0, yp = 0.0;  // Use float pixel position for smooth AA motion
+  float xp = 0.0, yp = 0.0; // Use float pixel position for smooth AA motion
 
   // Draw hour hand
   getCoord(CARD_C, CARD_C, &xp, &yp, H_HAND_LENGTH, h_angle - 90);
@@ -141,10 +145,14 @@ void renderHands(TFT_eSprite *hlpr) {
 /**
  * Draw entire clock at number of seconds since midnight.
  */
-void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false) {
-  spr->setTextColor(color_fg, color_bg);  // TODO: evaluate need for background here
+void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false)
+{
+  spr->setTextColor(color_fg, color_bg); // TODO: evaluate need for background here
   renderFace(spr);
-  if (setting_mode) { renderButtons(spr); }
+  if (setting_mode)
+  {
+    renderButtons(spr);
+  }
   renderHands(hlpr);
   hlpr->pushToSprite(spr, 0, 0, color_bg);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
@@ -161,58 +169,68 @@ void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false) {
  *         ^^ Minutes, i.e. 2D = 45 minutes
  *     ^^ Seconds, i.e. 01 = 1 second
  */
-void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000) {
-  if ((!force) && timeInitialized) {
+void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000)
+{
+  if ((!force) && timeInitialized)
+  {
     return;
   }
 
   detachInterrupt(VEHICLE_LIN);
   swLin.begin(LIN_BAUD_MAX);
   unsigned long start = millis();
-  while (true) {
-    if (millis() - start > 10000) {
+  while (true)
+  {
+    if (millis() - start > 10000)
+    {
       swLin.end();
       break;
     }
     const int frame_data_bytes = 4;
 
-    uint8_t buf[2 + frame_data_bytes];  // 2 bytes for PID and CHECKSUM. !!! The SYNC is consumed by swLin.setAutoBaud()
+    uint8_t buf[2 + frame_data_bytes]; // 2 bytes for PID and CHECKSUM. !!! The SYNC is consumed by swLin.setAutoBaud()
 
     // sw_lin.checkBreak() blocks until UART ISR gives the semaphore.
     // I think I've made adequate changes so checkBreak() is no longer blocking
-    if (swLin.checkBreak(timeout)) {
+    if (swLin.checkBreak(timeout))
+    {
 
-      const uint32_t commonBaud[] = { 9597, 9600, 9615 };
+      const uint32_t commonBaud[] = {9597, 9600, 9615};
       uint32_t autobaud = swLin.setAutoBaud(commonBaud, sizeof(commonBaud) / sizeof(commonBaud[0]), timeout);
 
-      const int read_timeout = 100000;  // 100ms timeout
+      const int read_timeout = 100000; // 100ms timeout
       int start_time = micros();
 
       int bytes_to_read = sizeof(buf) / sizeof(buf[0]);
       int bytes_read = 0;
-      while ((bytes_read < bytes_to_read) && ((micros() - start_time) <= read_timeout)) {
+      while ((bytes_read < bytes_to_read) && ((micros() - start_time) <= read_timeout))
+      {
         bytes_read += swLin.read(buf + bytes_read, bytes_to_read - bytes_read);
-        delay(0);  // yield for other tasks
+        delay(0); // yield for other tasks
       }
       swLin.endFrame();
 
-      if (bytes_read < bytes_to_read) {
+      if (bytes_read < bytes_to_read)
+      {
         // Serial.printf("Timeout: only %d bytes is read\n", bytes_read);
         continue;
       }
       // Serial.printf("ID: %02X\n", buf[0]);
-      if (buf[0] != 0xF0) {
+      if (buf[0] != 0xF0)
+      {
         continue;
       }
       uint8_t chk = buf[1] + buf[2] + buf[3] + buf[4];
-      if (chk + buf[5] != 0xFF) {
+      if (chk + buf[5] != 0xFF)
+      {
         // Serial.print("Data is invalid, got Checksum: ");
         // Serial.print(buf[5]);
         // Serial.print(". Expected: ");
         // Serial.println(0xFF - chk);
         continue;
       }
-      for (int i = 0; i < bytes_to_read; ++i) {
+      for (int i = 0; i < bytes_to_read; ++i)
+      {
         Serial.printf("0x%02X ", buf[i]);
       }
       Serial.print("\nHour: ");
@@ -238,7 +256,8 @@ void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000) {
  * Enter GUI time setting mode, where buttons are rendered on screen and touches are read to
  * update the seconds and hours.
  */
-void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
+void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr)
+{
   Serial.println("Setting time.");
   uint8_t touch_padding = 5;
 
@@ -246,25 +265,36 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   lv_indev_data_t data;
   unsigned long last_touch = millis();
 
-  while (millis() - last_touch < 10000) {
+  while (millis() - last_touch < 10000)
+  {
     syncTime(false);
     drawClock(spr, hlpr, true);
     readScreen(&data);
-    if (data.state != prev_state) {
+    if (data.state != prev_state)
+    {
       prev_state = data.state;
-      if (data.state == LV_INDEV_STATE_REL) {
-        if ((data.point.x < CARD_C - touch_padding) && (data.point.y < CARD_C - touch_padding)) {
+      if (data.state == LV_INDEV_STATE_REL)
+      {
+        if ((data.point.x < CARD_C - touch_padding) && (data.point.y < CARD_C - touch_padding))
+        {
           timeStruct.hours++;
-        } else if  ((data.point.x < CARD_C - touch_padding) && (data.point.y > CARD_C + touch_padding)) {
+        }
+        else if ((data.point.x < CARD_C - touch_padding) && (data.point.y > CARD_C + touch_padding))
+        {
           timeStruct.hours--;
-        } else if ((data.point.x > CARD_C + touch_padding) && (data.point.y < CARD_C - touch_padding)) {
+        }
+        else if ((data.point.x > CARD_C + touch_padding) && (data.point.y < CARD_C - touch_padding))
+        {
           timeStruct.minutes++;
-        } else if  ((data.point.x > CARD_C + touch_padding) && (data.point.y > CARD_C + touch_padding)) {
+        }
+        else if ((data.point.x > CARD_C + touch_padding) && (data.point.y > CARD_C + touch_padding))
+        {
           timeStruct.minutes--;
         }
       }
     }
-    if (data.state == LV_INDEV_STATE_PR) {
+    if (data.state == LV_INDEV_STATE_PR)
+    {
       last_touch = millis();
     }
   }
@@ -275,9 +305,11 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
 /**
  * Activate the clock instrument. This is the entry point which should be called from the main
  * instrument.
-*/
-void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
-  if (!clockInitialized) {
+ */
+void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin)
+{
+  if (!clockInitialized)
+  {
     rtc.begin();
     clockInitialized = true;
   }
@@ -285,12 +317,15 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
   // Only 1 font used in the sprite, so can remain loaded
   spr->loadFont(EurostileLTProDemi48);
   spr->setTextDatum(MC_DATUM);
-  if (handleBacklight(100)) {
+  if (handleBacklight(100))
+  {
     color_bg = COLOR_BG_NIGHT;
     color_fg = COLOR_FG_NIGHT;
     color_mh = COLOR_MH_NIGHT;
     color_hh = COLOR_HH_NIGHT;
-  } else {
+  }
+  else
+  {
     color_bg = COLOR_BG;
     color_fg = COLOR_FG;
     color_mh = COLOR_MH;
@@ -299,7 +334,8 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
 
   syncTime();
   drawClock(spr, hlpr);
-  if (!no_lin) {
+  if (!no_lin)
+  {
     getTimeFromVehicle();
   }
   unsigned long lastCheckTime = millis();
@@ -309,19 +345,25 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
   unsigned long previousTime = 0;
   unsigned long currentTime = 0;
 
-  while (true) {
+  while (true)
+  {
     currentTime = millis();
-    if ((!no_lin) && (!clockInitialized) && (currentTime - lastCheckTime >= 60000)) {
+    if ((!no_lin) && (!clockInitialized) && (currentTime - lastCheckTime >= 60000))
+    {
       getTimeFromVehicle();
       lastCheckTime = millis();
     }
-    if (currentTime - lastBacklightTime >= 1000) {
-      if (handleBacklight(100)) {
+    if (currentTime - lastBacklightTime >= 1000)
+    {
+      if (handleBacklight(100))
+      {
         color_bg = COLOR_BG_NIGHT;
         color_fg = COLOR_FG_NIGHT;
         color_mh = COLOR_MH_NIGHT;
         color_hh = COLOR_HH_NIGHT;
-      } else {
+      }
+      else
+      {
         color_bg = COLOR_BG;
         color_fg = COLOR_FG;
         color_mh = COLOR_MH;
@@ -329,20 +371,28 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
       }
       lastBacklightTime = currentTime;
     }
-    if (currentTime - previousTime >= 100) {
+    if (currentTime - previousTime >= 100)
+    {
       // Update next tick time in 100 milliseconds for smooth movement
       previousTime = currentTime;
       syncTime();
       drawClock(spr, hlpr);
     }
     int8_t click = clickType(3);
-    if (click == 1) {
+    if (click == 1)
+    {
       break;
-    } else if (click == -1) {
+    }
+    else if (click == -1)
+    {
       getTimeFromFingers(spr, hlpr);
-    } else if ((!no_lin) && (click == 2)) {
+    }
+    else if ((!no_lin) && (click == 2))
+    {
       getTimeFromVehicle(true);
-    } else if (click == 3) {
+    }
+    else if (click == 3)
+    {
       goToSleep();
     }
     checkSleep();
