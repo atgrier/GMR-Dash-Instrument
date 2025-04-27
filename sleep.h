@@ -1,4 +1,0 @@
-/*
-Sleep.
-*/
-void updateLinTime();

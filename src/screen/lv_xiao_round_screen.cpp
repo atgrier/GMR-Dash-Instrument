@@ -1,18 +1,15 @@
 /* display and touch driver for XIAO round screen
 I had to modify C:\Users\Alan\OneDrive\Documents\Arduino\libraries\TFT_eSPI\User_Setups\Setup66_Seeed_XIAO_Round.h for the QTPY
 */
-
-#include <Arduino.h>
 #include <lvgl.h>
 #include <SPI.h>
 #include <Wire.h>
-
-#include "common.h"
-
-uint8_t screen_rotation;
-
 #include <TFT_eSPI.h>
+
+#include "lv_xiao_round_screen.h"
+
 TFT_eSPI tft = TFT_eSPI(SCREEN_WIDTH, SCREEN_HEIGHT);
+uint8_t screen_rotation;
 
 #if LVGL_VERSION_MAJOR == 9
 void xiao_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
@@ -79,8 +76,6 @@ void lv_xiao_disp_init(void) {
   lv_disp_drv_register(&disp_drv);
 #endif
 }
-
-
 
 /* touch driver : chsc6x */
 
@@ -153,4 +148,13 @@ void lv_xiao_touch_init(void) {
   indev_drv.read_cb = chsc6x_read;
   lv_indev_drv_register(&indev_drv);
 #endif
+}
+
+void screenSleep() {
+  tft.writecommand(0x10);
+  delay(10);
+}
+
+TFT_eSPI* getTft() {
+  return &tft;
 }

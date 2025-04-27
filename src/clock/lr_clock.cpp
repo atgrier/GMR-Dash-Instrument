@@ -3,127 +3,44 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 RTC Calibration: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#off-line-manual-calibration-of-the-rtc
 Get RTC Time: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#get-rtc-time
 */
-#include <Wire.h>
-#include "src/SoftwareLin/SoftwareLin.h"
-#include "fonts/EurostileLTProUnicodeDemi48.h"
-#include "common.h"
-#include "sleep.h"
-#include "lin.h"
+#include <I2C_BM8563.h>
 
-#define COLOR_PIVOT 0x18C3
-#define COLOR_MH 0xF7BE
-#define COLOR_HH 0xDEFB
-#define COLOR_MH_NIGHT 0x7F4E
-#define COLOR_HH_NIGHT 0x772C
+#include "lr_clock.h"
+#include "../SoftwareLin/SoftwareLin.h"
+#include "../fonts/EurostileLTProUnicodeDemi48.h"
+#include "../sleep/sleep.h"
+#include "../screen/lv_xiao_round_screen.h"
+#include "../common.h"
 
 uint16_t color_bg = COLOR_BG;
 uint16_t color_fg = COLOR_FG;
 uint16_t color_mh = COLOR_MH;
 uint16_t color_hh = COLOR_HH;
 
-#define M_HAND_LENGTH 110.0f
-#define H_HAND_LENGTH 86.0f
-#define TICK_HEIGHT 26.0f
-#define TICK_WIDTH 5.0f
-
-// Calculate 1 second increment angles. Hours and minute hand angles
-// change every second so we see smooth sub-pixel movement
-#define SECOND_ANGLE (360.0 / 60.0)
-#define MINUTE_ANGLE (SECOND_ANGLE / 60.0)
-#define HOUR_ANGLE (MINUTE_ANGLE / 12.0)
-
-#define SETTING_WIDTH 60
-#define SETTING_H_HEIGHT 50
-#define SETTING_M_HEIGHT 70
-#define SETTING_BASE_OFFSET 10
-#define SETTING_LATERAL_OFFSET 65
-
 float time_secs = 0;
 bool clockInitialized = false;
+I2C_BM8563_TimeTypeDef timeStruct;
 I2C_BM8563 rtc(I2C_BM8563_DEFAULT_ADDRESS, Wire);
 SoftwareLin swLin(VEHICLE_LIN, -1);
 bool timeInitialized = false;
 
-void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
-  if (!clockInitialized) {
-    rtc.begin();
-    clockInitialized = true;
+/*
+Sample message:
+ID  Data . . . . .                      Checksum
+F0  01  2D  51  00                      80
+                ^^ Unused?
+            ^^ This appears to be hours beginning at 40, i.e. decimal 64. In our case 51 would be hour 17. It is the same in both 12 and 24 hour mode.
+        ^^ Minutes, i.e. 2D = 45 minutes
+    ^^ I supect this is seconds, it seems to have reset every time I changed something
+
+*/
+void syncTime(bool get_time = true) {
+  if (get_time) { rtc.getTime(&timeStruct); }
+  time_secs = (timeStruct.hours * 3600) + (timeStruct.minutes * 60) + timeStruct.seconds;
+  // Midnight roll-over
+  if (time_secs >= 86400) {
+    time_secs -= 86400;
   }
-
-  // Only 1 font used in the sprite, so can remain loaded
-  spr->loadFont(EurostileLTProDemi48);
-  spr->setTextDatum(MC_DATUM);
-  if (handleBacklight(100)) {
-    color_bg = COLOR_BG_NIGHT;
-    color_fg = COLOR_FG_NIGHT;
-    color_mh = COLOR_MH_NIGHT;
-    color_hh = COLOR_HH_NIGHT;
-  } else {
-    color_bg = COLOR_BG;
-    color_fg = COLOR_FG;
-    color_mh = COLOR_MH;
-    color_hh = COLOR_HH;
-  }
-
-  syncTime();
-  drawClock(spr, hlpr);
-  if (!no_lin) {
-    getTimeFromVehicle();
-  }
-  unsigned long lastCheckTime = millis();
-  unsigned long lastBacklightTime = millis();
-
-  // Time for next tick
-  unsigned long previousTime = 0;
-  unsigned long currentTime = 0;
-
-  while (true) {
-    currentTime = millis();
-    if ((!no_lin) && (!clockInitialized) && (currentTime - lastCheckTime >= 60000)) {
-      getTimeFromVehicle();
-      lastCheckTime = millis();
-    }
-    if (currentTime - lastBacklightTime >= 1000) {
-      if (handleBacklight(100)) {
-        color_bg = COLOR_BG_NIGHT;
-        color_fg = COLOR_FG_NIGHT;
-        color_mh = COLOR_MH_NIGHT;
-        color_hh = COLOR_HH_NIGHT;
-      } else {
-        color_bg = COLOR_BG;
-        color_fg = COLOR_FG;
-        color_mh = COLOR_MH;
-        color_hh = COLOR_HH;
-      }
-      lastBacklightTime = currentTime;
-    }
-    if (currentTime - previousTime >= 100) {
-      // Update next tick time in 100 milliseconds for smooth movement
-      previousTime = currentTime;
-      syncTime();
-      drawClock(spr, hlpr);
-    }
-    int8_t click = clickType(3);
-    if (click == 1) {
-      break;
-    } else if (click == -1) {
-      getTimeFromFingers(spr, hlpr);
-    } else if ((!no_lin) && (click == 2)) {
-      getTimeFromVehicle(true);
-    } else if (click == 3) {
-      goToSleep();
-    }
-    checkSleep();
-  }
-}
-
-void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode) {
-  spr->setTextColor(color_fg, color_bg);  // TODO: evaluate need for background here
-  renderFace(spr);
-  if (setting_mode) { renderButtons(spr); }
-  renderHands(hlpr);
-  hlpr->pushToSprite(spr, 0, 0, color_bg);
-  spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
 
 void renderButtons(TFT_eSprite *spr) {
@@ -214,26 +131,16 @@ void renderHands(TFT_eSprite *hlpr) {
   hlpr->fillSmoothCircle(CARD_C, CARD_C, 21, COLOR_PIVOT);
 }
 
-/*
-Sample message:
-ID  Data . . . . .                      Checksum
-F0  01  2D  51  00                      80
-                ^^ Unused?
-            ^^ This appears to be hours beginning at 40, i.e. decimal 64. In our case 51 would be hour 17. It is the same in both 12 and 24 hour mode.
-        ^^ Minutes, i.e. 2D = 45 minutes
-    ^^ I supect this is seconds, it seems to have reset every time I changed something
-
-*/
-void syncTime(bool get_time) {
-  if (get_time) { rtc.getTime(&timeStruct); }
-  time_secs = (timeStruct.hours * 3600) + (timeStruct.minutes * 60) + timeStruct.seconds;
-  // Midnight roll-over
-  if (time_secs >= 86400) {
-    time_secs -= 86400;
-  }
+void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false) {
+  spr->setTextColor(color_fg, color_bg);  // TODO: evaluate need for background here
+  renderFace(spr);
+  if (setting_mode) { renderButtons(spr); }
+  renderHands(hlpr);
+  hlpr->pushToSprite(spr, 0, 0, color_bg);
+  spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
 
-void getTimeFromVehicle(bool force, uint32_t timeout) {
+void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000) {
   if ((!force) && timeInitialized) {
     return;
   }
@@ -338,4 +245,77 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   }
 
   rtc.setTime(&timeStruct);
+}
+
+void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
+  if (!clockInitialized) {
+    rtc.begin();
+    clockInitialized = true;
+  }
+
+  // Only 1 font used in the sprite, so can remain loaded
+  spr->loadFont(EurostileLTProDemi48);
+  spr->setTextDatum(MC_DATUM);
+  if (handleBacklight(100)) {
+    color_bg = COLOR_BG_NIGHT;
+    color_fg = COLOR_FG_NIGHT;
+    color_mh = COLOR_MH_NIGHT;
+    color_hh = COLOR_HH_NIGHT;
+  } else {
+    color_bg = COLOR_BG;
+    color_fg = COLOR_FG;
+    color_mh = COLOR_MH;
+    color_hh = COLOR_HH;
+  }
+
+  syncTime();
+  drawClock(spr, hlpr);
+  if (!no_lin) {
+    getTimeFromVehicle();
+  }
+  unsigned long lastCheckTime = millis();
+  unsigned long lastBacklightTime = millis();
+
+  // Time for next tick
+  unsigned long previousTime = 0;
+  unsigned long currentTime = 0;
+
+  while (true) {
+    currentTime = millis();
+    if ((!no_lin) && (!clockInitialized) && (currentTime - lastCheckTime >= 60000)) {
+      getTimeFromVehicle();
+      lastCheckTime = millis();
+    }
+    if (currentTime - lastBacklightTime >= 1000) {
+      if (handleBacklight(100)) {
+        color_bg = COLOR_BG_NIGHT;
+        color_fg = COLOR_FG_NIGHT;
+        color_mh = COLOR_MH_NIGHT;
+        color_hh = COLOR_HH_NIGHT;
+      } else {
+        color_bg = COLOR_BG;
+        color_fg = COLOR_FG;
+        color_mh = COLOR_MH;
+        color_hh = COLOR_HH;
+      }
+      lastBacklightTime = currentTime;
+    }
+    if (currentTime - previousTime >= 100) {
+      // Update next tick time in 100 milliseconds for smooth movement
+      previousTime = currentTime;
+      syncTime();
+      drawClock(spr, hlpr);
+    }
+    int8_t click = clickType(3);
+    if (click == 1) {
+      break;
+    } else if (click == -1) {
+      getTimeFromFingers(spr, hlpr);
+    } else if ((!no_lin) && (click == 2)) {
+      getTimeFromVehicle(true);
+    } else if (click == 3) {
+      goToSleep();
+    }
+    checkSleep();
+  }
 }

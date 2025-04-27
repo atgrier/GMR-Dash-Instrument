@@ -1,15 +1,22 @@
-/*
-Common settings.
-*/
+#include <TFT_eSPI.h>
+#include <lvgl.h>
+
+#define USE_TFT_ESPI_LIBRARY
 
 #define XIAO_ESP32S3
 // #define QTPY_ESP32S3
 
-#define LIN_OFF_TIME 10000
 #define SCREEN_SIZE 240
 #define SCREEN_WIDTH SCREEN_SIZE
 #define SCREEN_HEIGHT SCREEN_SIZE
 #define LVGL_BUFF_SIZE 10  // Number of rows
+
+#define CARD_SIZE 240.0f
+#define CARD_R (CARD_SIZE / 2.0f)
+#define CENTER_OFFSET ((CARD_SIZE - SCREEN_SIZE) / 2.0f)  // To the left and up (negative in both X and Y)
+#define CARD_C ((CARD_SIZE / 2.0f) - CENTER_OFFSET)
+#define HELPER_W 32
+#define HELPER_H 24
 
 #define CHSC6X_I2C_ID 0x2e
 #define CHSC6X_MAX_POINTS_NUM 1
@@ -44,11 +51,8 @@ Common settings.
 #define COLOR_FG 0xEF7D
 #define COLOR_FG_NIGHT 0x774D
 
-#define DEG2RAD 0.0174532925
-#define MM2PX 7.3846153846
-#define CARD_SIZE 240.0f
-#define CARD_R (CARD_SIZE / 2.0f)
-#define CENTER_OFFSET ((CARD_SIZE - SCREEN_SIZE) / 2.0f)  // To the left and up (negative in both X and Y)
-#define CARD_C ((CARD_SIZE / 2.0f) - CENTER_OFFSET)
-#define HELPER_W 32
-#define HELPER_H 24
+void read_screen(lv_indev_data_t *data);
+bool chsc6x_is_pressed(void);
+void xiao_disp_init(void);
+void screenSleep();
+TFT_eSPI* getTft();

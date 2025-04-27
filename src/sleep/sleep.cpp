@@ -1,19 +1,17 @@
 /*
 Sleep.
 */
+#include <driver/rtc_io.h>
 
-#include "driver/rtc_io.h"
 #include "sleep.h"
+#include "../imu/imu.h"
+#include "../screen/lv_xiao_round_screen.h"
 
 unsigned long lastLinTime;
 
 void goToSleep() {
-  if (imuInitialized) {
-    bno085.modeSleep();
-  }
-  delay(10);
-  tft.writecommand(0x10);
-  delay(10);
+  sleepIMU();
+  screenSleep();
 
   digitalWrite(XIAO_BL, LOW);
   gpio_hold_en((gpio_num_t)XIAO_BL);
