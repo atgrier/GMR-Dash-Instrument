@@ -30,4 +30,3 @@
 #define LIN_BAUD_MAX (10000)
 
 void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin);
-void syncTime(bool get_time);

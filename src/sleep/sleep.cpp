@@ -10,6 +10,9 @@ Sleep.
 
 unsigned long lastLinTime;
 
+/**
+ * Put the microcontroller to deep sleep.
+ */
 void goToSleep() {
   sleepIMU();
   screenSleep();
@@ -30,6 +33,9 @@ void goToSleep() {
   esp_deep_sleep_start();
 }
 
+/**
+ * Cleanup sleep pin assignments after waking up from sleep.
+ */
 void wakeupCleanup() {
   gpio_deep_sleep_hold_dis();
   gpio_hold_dis((gpio_num_t)XIAO_BL);
@@ -41,14 +47,24 @@ void wakeupCleanup() {
   rtc_gpio_deinit((gpio_num_t)WAKEUP_PIN);
 }
 
+/**
+ * ISR to update the last activity time on vehicle's LIN bus.
+ */
 void updateLinTime() {
   lastLinTime = millis();
 }
 
+/**
+ * Check whether the elapsed time since last LIN activity is greather thatn `LIN_OFF_TIME` and go
+ * to sleep if it is.
+ */
 void checkSleep() {
   if (millis() - lastLinTime > LIN_OFF_TIME) { goToSleep(); }
 }
 
+/**
+ * Attach ISR for checking activity on vehicle's LIN bus.
+ */
 void attachSleepInterrupt() {
   pinMode(VEHICLE_LIN, INPUT);
   pinMode(WAKEUP_PIN, INPUT);

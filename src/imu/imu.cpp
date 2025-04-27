@@ -18,6 +18,9 @@ bool justReset = true;
 
 euler_t ypr;
 
+/**
+ * Initialize the BNO085 IMU.
+ */
 void setupIMU() {
   unsigned long start = millis();
 #if defined(XIAO_ESP32S3)
@@ -38,6 +41,9 @@ void setupIMU() {
   imuInitialized = true;
 }
 
+/**
+ * Re-initialze the BNO085 IMU, e.g. for when it stops providing data.
+ */
 void resetIMU() {
   bno085.modeSleep();
   delay(10);
@@ -47,6 +53,9 @@ void resetIMU() {
   setupIMU();
 }
 
+/**
+ * Put BNO085 IMU to sleep.
+ */
 void sleepIMU() {
   if (imuInitialized) {
     bno085.modeSleep();
@@ -54,6 +63,10 @@ void sleepIMU() {
   delay(10);
 }
 
+/**
+ * Activate the IMU instrument for either attitude or compass mode. This is the entry point which
+ * should be called from the main instrument.
+*/
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_type) {
   if (!imuInitialized) {
     setupIMU();
@@ -124,6 +137,9 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, imu_instrument_t instr_t
   }
 }
 
+/**
+ * Convert a position in MM to a pixel position, factoring in the bank angle.
+ */
 void mmToPx(float x, float y, float *xp, float *yp, float roll) {
   float _sin = sin((roll)*DEG2RAD);
   float _cos = cos((roll)*DEG2RAD);
@@ -133,6 +149,9 @@ void mmToPx(float x, float y, float *xp, float *yp, float roll) {
   *yp = (_y * _cos) + (_x * _sin);
 }
 
+/**
+ * Get Euler orientation angles from quaternion values.
+ */
 void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data) {
   float sqr = sq(qr);
   float sqi = sq(qi);
@@ -144,6 +163,9 @@ void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data) {
   _data->roll = atan2(2.0 * (qj * qk + qi * qr), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
 }
 
+/**
+ * Get arctangent angle of a position (x, y) relative to (x_c, y_c).
+ */
 float getAngle(float x_c, float y_c, float x, float y) {
   return atan2(y - y_c, x - x_c) / DEG2RAD;
 }

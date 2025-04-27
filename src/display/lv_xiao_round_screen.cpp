@@ -80,6 +80,9 @@ void lv_xiao_disp_init(void) {
 
 /* touch driver : chsc6x */
 
+/**
+ * Read whether the screen is currently touched.
+ */
 bool chsc6x_is_pressed(void) {
   if (digitalRead(TOUCH_INT) != LOW) {
     delay(5);
@@ -113,6 +116,9 @@ void chsc6x_get_xy(lv_coord_t *x, lv_coord_t *y) {
   }
 }
 
+/**
+ * Read current touch data (state and location) from the screen.
+ */
 void readScreen(lv_indev_data_t *data)
 {
   lv_coord_t touchX, touchY;
@@ -151,11 +157,17 @@ void lv_xiao_touch_init(void) {
 #endif
 }
 
+/**
+ * Put the display to sleep.
+ */
 void screenSleep() {
   tft.writecommand(0x10);
   delay(10);
 }
 
+/**
+ * Get the TFT_eSPI screen object.
+ */
 TFT_eSPI* getTft() {
   return &tft;
 }

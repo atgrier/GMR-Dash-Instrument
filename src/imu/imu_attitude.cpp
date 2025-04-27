@@ -9,6 +9,9 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 
 float attitudeTicks[2][28][3][2];
 
+/**
+ * Setup the attitude instrument, i.e. pre-compute static trigonometric values.
+ */
 void setupAttitude() {
   float xp = 0.0, yp = 0.0;
   float xt = 0.0, yt = 0.0;
@@ -38,6 +41,10 @@ void setupAttitude() {
   }
 }
 
+/**
+ * Draw attitude indicator background card at current pitch angle, i.e. sky, ground, horizon bar,
+ * pitch indication, and bank scale (but not the bank indicator).
+ */
 void drawBackground(TFT_eSprite *spr, float pitch) {
   spr->fillSprite(COLOR_SKY);
 
@@ -81,6 +88,9 @@ void drawBackground(TFT_eSprite *spr, float pitch) {
   }
 }
 
+/**
+ * Draw reference car for bank indication at current bank angle.
+ */
 void drawForeground(TFT_eSprite *spr, float roll) {
   // Draw center marker
   spr->fillSmoothCircle(CARD_C, CARD_C, 4, COLOR_CAR);
@@ -137,6 +147,9 @@ void drawForeground(TFT_eSprite *spr, float roll) {
   spr->drawWideLine(CARD_C - xp, CARD_C - yp, CARD_C - xt, CARD_C - yt, 4.0f, COLOR_CAR);
 }
 
+/**
+ * Draw the attitude instrument at pitch and bank angles.
+ */
 void drawAttitude(TFT_eSprite *spr, float roll, float pitch) {
   drawBackground(spr, pitch + 90 - 25);  // TODO: Calibrate zero pitch offset
   drawForeground(spr, roll * ROLL_MULTIPLIER);  // TODO: Calibrate zero roll offset

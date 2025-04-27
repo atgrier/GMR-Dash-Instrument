@@ -10,6 +10,10 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 float compassArcs[10][3][2];
 float compassLines[50][2][2];
 
+
+/**
+ * Setup the compass instrument, i.e. pre-compute static trigonometric values.
+ */
 void setupCompass()
 {
   // Center, Radius, Start, End
@@ -99,6 +103,9 @@ void setupCompass()
   }
 }
 
+/**
+ * Draw car and course reference line.
+ */
 void drawCar(TFT_eSprite *spr)
 {
   uint8_t tip_w = 20;
@@ -133,6 +140,9 @@ void drawCar(TFT_eSprite *spr)
   }
 }
 
+/**
+ * Draw compass scale at current heading.
+ */
 void drawDial(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading)
 {
   float xp = 0.0, yp = 0.0;
@@ -162,6 +172,9 @@ void drawDial(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading)
   }
 }
 
+/**
+ * Draw compass instrument at current heading.
+ */
 void drawCompass(TFT_eSprite *spr, TFT_eSprite *hlpr, float heading)
 {
   spr->fillSprite(COLOR_BG);

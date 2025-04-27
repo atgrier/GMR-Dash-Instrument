@@ -28,16 +28,9 @@ I2C_BM8563 rtc(I2C_BM8563_DEFAULT_ADDRESS, Wire);
 SoftwareLin swLin(VEHICLE_LIN, -1);
 bool timeInitialized = false;
 
-/*
-Sample message:
-ID  Data . . . . .                      Checksum
-F0  01  2D  51  00                      80
-                ^^ Unused?
-            ^^ This appears to be hours beginning at 40, i.e. decimal 64. In our case 51 would be hour 17. It is the same in both 12 and 24 hour mode.
-        ^^ Minutes, i.e. 2D = 45 minutes
-    ^^ I supect this is seconds, it seems to have reset every time I changed something
-
-*/
+/**
+ * Update `time_secs` variable with seconds since midnight from the RTC.
+ */
 void syncTime(bool get_time = true) {
   if (get_time) { rtc.getTime(&timeStruct); }
   time_secs = (timeStruct.hours * 3600) + (timeStruct.minutes * 60) + timeStruct.seconds;
@@ -47,6 +40,9 @@ void syncTime(bool get_time = true) {
   }
 }
 
+/**
+ * Draw triangular buttons used to indicated areas of screen to press for manually setting time.
+ */
 void renderButtons(TFT_eSprite *spr) {
   uint16_t button_color = 0xAD55;
   spr->fillTriangle(
@@ -87,6 +83,9 @@ void renderButtons(TFT_eSprite *spr) {
   );
 }
 
+/**
+ * Draw clock face, i.e. ticks and numbers.
+ */
 void renderFace(TFT_eSprite *spr) {
   spr->fillSprite(color_bg);
 
@@ -112,6 +111,10 @@ void renderFace(TFT_eSprite *spr) {
   spr->drawNumber(9, CARD_C - dialRadius - hOffset, CARD_C + 2);
 }
 
+
+/**
+ * Draw clock hands at the number of seconds since midnight.
+ */
 void renderHands(TFT_eSprite *hlpr) {
   float h_angle = time_secs * HOUR_ANGLE;
   float m_angle = time_secs * MINUTE_ANGLE;
@@ -135,6 +138,9 @@ void renderHands(TFT_eSprite *hlpr) {
   hlpr->fillSmoothCircle(CARD_C, CARD_C, 21, COLOR_PIVOT);
 }
 
+/**
+ * Draw entire clock at number of seconds since midnight.
+ */
 void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false) {
   spr->setTextColor(color_fg, color_bg);  // TODO: evaluate need for background here
   renderFace(spr);
@@ -144,6 +150,17 @@ void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false) {
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
 
+/**
+ * Get the current time from the vehicle's LIN bus.
+ *
+ * Sample message:
+ * ID  Data . . . . .                      Checksum
+ * F0  01  2D  51  00                      80
+ *                 ^^ Unused?
+ *             ^^ This appears to be hours beginning at 40, i.e. decimal 64. In our case 51 would be hour 17. It is the same in both 12 and 24 hour mode.
+ *         ^^ Minutes, i.e. 2D = 45 minutes
+ *     ^^ Seconds, i.e. 01 = 1 second
+ */
 void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000) {
   if ((!force) && timeInitialized) {
     return;
@@ -217,6 +234,10 @@ void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000) {
   attachSleepInterrupt();
 }
 
+/**
+ * Enter GUI time setting mode, where buttons are rendered on screen and touches are read to
+ * update the seconds and hours.
+ */
 void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   Serial.println("Setting time.");
   uint8_t touch_padding = 5;
@@ -251,6 +272,10 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   rtc.setTime(&timeStruct);
 }
 
+/**
+ * Activate the clock instrument. This is the entry point which should be called from the main
+ * instrument.
+*/
 void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin) {
   if (!clockInitialized) {
     rtc.begin();
