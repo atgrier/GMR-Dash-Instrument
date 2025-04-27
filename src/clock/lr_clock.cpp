@@ -4,13 +4,17 @@ RTC Calibration: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#o
 Get RTC Time: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#get-rtc-time
 */
 #include <I2C_BM8563.h>
+#include <TFT_eSPI.h>
+#include <lvgl.h>
 
 #include "lr_clock.h"
+#include "../common.h"
+#include "../pins.h"
+#include "../screen.h"
+#include "../display/lv_xiao_round_screen.h"
 #include "../SoftwareLin/SoftwareLin.h"
 #include "../fonts/EurostileLTProUnicodeDemi48.h"
 #include "../sleep/sleep.h"
-#include "../screen/lv_xiao_round_screen.h"
-#include "../common.h"
 
 uint16_t color_bg = COLOR_BG;
 uint16_t color_fg = COLOR_FG;
@@ -224,7 +228,7 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr) {
   while (millis() - last_touch < 10000) {
     syncTime(false);
     drawClock(spr, hlpr, true);
-    read_screen(&data);
+    readScreen(&data);
     if (data.state != prev_state) {
       prev_state = data.state;
       if (data.state == LV_INDEV_STATE_REL) {

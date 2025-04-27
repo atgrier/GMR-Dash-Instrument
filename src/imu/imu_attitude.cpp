@@ -4,7 +4,8 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 #include "imu.h"
 #include "imu_attitude.h"
 #include "../common.h"
-#include "../screen/lv_xiao_round_screen.h"
+#include "../pins.h"
+#include "../screen.h"
 
 float attitudeTicks[2][28][3][2];
 

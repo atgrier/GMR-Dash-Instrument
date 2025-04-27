@@ -1,7 +1,8 @@
 #include <stdint.h>
 
 #include "common.h"
-#include "screen/lv_xiao_round_screen.h"
+#include "pins.h"
+#include "display/lv_xiao_round_screen.h"
 
 uint8_t vehicle_brightness = 0;
 

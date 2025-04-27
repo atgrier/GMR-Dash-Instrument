@@ -7,10 +7,12 @@ Touch: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#touch-funct
 #include <Wire.h>
 
 #include "src/common.h"
+#include "src/pins.h"
+#include "src/screen.h"
+#include "src/display/lv_xiao_round_screen.h"
 #include "src/sleep/sleep.h"
 #include "src/imu/imu.h"
 #include "src/clock/lr_clock.h"
-#include "src/screen/lv_xiao_round_screen.h"
 
 TFT_eSPI *_tft = getTft();
 TFT_eSprite instrument = TFT_eSprite(_tft);
@@ -42,12 +44,13 @@ void setup() {
   pinMode(VEHICLE_BACKLIGHT, INPUT);
   handleBacklight(100);
   Wire.begin();
-#ifdef XIAO_ESP32S3
+#if defined(XIAO_ESP32S3)
   Wire.setTimeout(4);
-#endif
-#ifdef QTPY_ESP32S3
+#elif defined(QTPY_ESP32S3)
   Wire1.begin();
   Wire1.setTimeout(4);
+#else
+  #error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
 }
 

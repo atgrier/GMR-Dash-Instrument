@@ -7,6 +7,7 @@ I had to modify C:\Users\Alan\OneDrive\Documents\Arduino\libraries\TFT_eSPI\User
 #include <TFT_eSPI.h>
 
 #include "lv_xiao_round_screen.h"
+#include "../pins.h"
 
 TFT_eSPI tft = TFT_eSPI(SCREEN_WIDTH, SCREEN_HEIGHT);
 uint8_t screen_rotation;
@@ -112,7 +113,7 @@ void chsc6x_get_xy(lv_coord_t *x, lv_coord_t *y) {
   }
 }
 
-void read_screen(lv_indev_data_t *data)
+void readScreen(lv_indev_data_t *data)
 {
   lv_coord_t touchX, touchY;
   if (!chsc6x_is_pressed()) {
@@ -131,7 +132,7 @@ void chsc6x_read(lv_indev_t *indev, lv_indev_data_t *data)
 #elif LVGL_VERSION_MAJOR == 8
 void chsc6x_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 #endif
-{ read_screen(data); }
+{ readScreen(data); }
 
 void lv_xiao_touch_init(void) {
   pinMode(TOUCH_INT, INPUT_PULLUP);

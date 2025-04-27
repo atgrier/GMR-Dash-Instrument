@@ -4,9 +4,10 @@
 #include "imu_attitude.h"
 #include "imu_compass.h"
 #include "../common.h"
+#include "../pins.h"
+#include "../screen.h"
 #include "../fonts/EurostileLTProUnicodeDemi24.h"
 #include "../sleep/sleep.h"
-#include "../screen/lv_xiao_round_screen.h"
 
 BNO080 bno085;
 
@@ -19,11 +20,12 @@ euler_t ypr;
 
 void setupIMU() {
   unsigned long start = millis();
-#ifdef XIAO_ESP32S3
+#if defined(XIAO_ESP32S3)
   while (!bno085.begin(BNO085_ADDR)) {
-#endif
-#ifdef QTPY_ESP32S3
+#elif defined(QTPY_ESP32S3)
   while (!bno085.begin(BNO085_ADDR, &Wire1)) {
+#else
+  #error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
     Serial.println("Failed to find BNO08x chip");
     if (millis() - start > 1000) {

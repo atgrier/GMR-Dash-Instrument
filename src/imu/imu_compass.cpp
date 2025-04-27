@@ -3,8 +3,9 @@ I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against a
 */
 #include "imu.h"
 #include "imu_compass.h"
-#include "../screen/lv_xiao_round_screen.h"
 #include "../common.h"
+#include "../pins.h"
+#include "../screen.h"
 
 float compassArcs[10][3][2];
 float compassLines[50][2][2];
