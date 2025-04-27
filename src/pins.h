@@ -1,3 +1,6 @@
+/**
+ * Pin assignments.
+ */
 #define XIAO_ESP32S3
 // #define QTPY_ESP32S3
 

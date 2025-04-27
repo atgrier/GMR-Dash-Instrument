@@ -1,6 +1,8 @@
-/*
-I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against any background color, i.e. when passing in 0x00FFFFFF
-*/
+/**
+ * Compass instrument.
+ *
+ * I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against any background color, i.e. when passing in 0x00FFFFFF
+ */
 #include "imu_compass.h"
 #include "imu.h"
 #include "../common.h"

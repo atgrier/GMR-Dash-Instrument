@@ -1,3 +1,6 @@
+/**
+ * Land Rover LR4 Clock.
+ */
 #include <TFT_eSPI.h>
 
 #define COLOR_PIVOT 0x18C3

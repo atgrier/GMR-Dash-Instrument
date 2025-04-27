@@ -1,3 +1,6 @@
+/**
+ * Screen assignments.
+ */
 #define SCREEN_SIZE 240
 #define CARD_SIZE 240.0f
 #define CARD_R (CARD_SIZE / 2.0f)

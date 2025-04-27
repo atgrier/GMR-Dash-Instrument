@@ -1,6 +1,6 @@
-/*
-Sleep.
-*/
+/**
+ * Methods for handling sleep mode.
+ */
 #include <driver/rtc_io.h>
 
 #include "sleep.h"

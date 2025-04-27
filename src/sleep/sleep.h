@@ -1,7 +1,6 @@
-/*
-Sleep.
-*/
-
+/**
+ * Methods for handling sleep mode.
+ */
 #define LIN_OFF_TIME 10000
 
 void updateLinTime();

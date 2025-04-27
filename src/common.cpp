@@ -1,3 +1,6 @@
+/**
+ * Common utilities.
+ */
 #include <stdint.h>
 
 #include "common.h"

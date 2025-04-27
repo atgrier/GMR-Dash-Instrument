@@ -1,6 +1,6 @@
-/*
-Common settings.
-*/
+/**
+ * Common utilities.
+ */
 
 #define DEG2RAD 0.0174532925
 #define MM2PX 7.3846153846

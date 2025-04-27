@@ -1,21 +1,21 @@
-/* The font vlw file can be converted to a byte array using:
-
-   https://tomeko.net/online_tools/file_to_hex.php?lang=en
-
-   Paste the byte array into a sketch tab and add two lines
-   at the start with a unique font name:
-
-        #include <pgmspace.h>
-        const uint8_t  fontName[] PROGMEM = {
-
-   At the end add:
-
-        };
-
-   See example below. Include the tab in the main sketch, e.g.:
-
-        #include "fonts/EurostileLTProUnicodeDemi48.h"
-*/
+/**
+ * The font vlw file can be converted to a byte array using:
+ *
+ * https://tomeko.net/online_tools/file_to_hex.php?lang=en
+ *
+ * Paste the byte array into a sketch tab and add two lines at the start with a unique font name:
+ *
+ *     #include <pgmspace.h>
+ *     const uint8_t  fontName[] PROGMEM = {
+ *
+ * At the end add:
+ *
+ *     };
+ *
+ * See example below. Include the tab in the main sketch, e.g.:
+ *
+ *     #include "fonts/EurostileLTProUnicodeDemi48.h"
+ */
 
 // #include <pgmspace.h>
 
