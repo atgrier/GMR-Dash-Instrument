@@ -8,13 +8,13 @@
 #include <I2C_BM8563.h>
 #include <TFT_eSPI.h>
 #include <lvgl.h>
+#include <SoftwareLin.h>
 
 #include "lr_clock.h"
 #include "../common.h"
 #include "../pins.h"
 #include "../screen.h"
 #include "../display/lv_xiao_round_screen.h"
-#include "../SoftwareLin/SoftwareLin.h"
 #include "../fonts/EurostileLTProUnicodeDemi48.h"
 #include "../sleep/sleep.h"
 
