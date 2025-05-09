@@ -1,0 +1,3 @@
+[submodule "libraries/ESP32-SoftwareLIN"]
+	path = libraries/ESP32-SoftwareLIN
+	url = https://github.com/atgrier/ESP32-SoftwareLIN.git
