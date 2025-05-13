@@ -170,6 +170,8 @@ void drawClock(TFT_eSprite *spr, TFT_eSprite *hlpr, bool setting_mode = false)
  *             ^^ This appears to be hours beginning at 40, i.e. decimal 64. In our case 51 would be hour 17. It is the same in both 12 and 24 hour mode.
  *         ^^ Minutes, i.e. 2D = 45 minutes
  *     ^^ Seconds, i.e. 01 = 1 second
+ *
+ * Additionally, the LIN bus voltage appears to never exceed 13.2 V, even when the battery is at 14.5 V.
  */
 void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000)
 {
@@ -255,13 +257,30 @@ void getTimeFromVehicle(bool force = false, uint32_t timeout = 10000)
 }
 
 /**
+ * Increment time by specified amount, staying within the bounds of [0, max_time].
+ */
+uint8_t incrementTime(uint8_t old_time, uint8_t max_time, int8_t _inc)
+{
+  int16_t new_time = old_time + _inc;
+  if (new_time < 0)
+  {
+    new_time += (max_time + 1);
+  }
+  else if (new_time > max_time)
+  {
+    new_time -= (max_time + 1);
+  }
+  return (uint8_t)new_time;
+}
+
+/**
  * Enter GUI time setting mode, where buttons are rendered on screen and touches are read to
  * update the seconds and hours.
  */
 void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr)
 {
   Serial.println("Setting time.");
-  uint8_t touch_padding = 5;
+  uint8_t touch_padding = 10;
 
   lv_indev_state_t prev_state = LV_INDEV_STATE_REL;
   lv_indev_data_t data;
@@ -279,19 +298,19 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr)
       {
         if ((data.point.x < CARD_C - touch_padding) && (data.point.y < CARD_C - touch_padding))
         {
-          timeStruct.hours++;
+          timeStruct.hours = incrementTime(timeStruct.hours, 23, 1);
         }
         else if ((data.point.x < CARD_C - touch_padding) && (data.point.y > CARD_C + touch_padding))
         {
-          timeStruct.hours--;
+          timeStruct.hours = incrementTime(timeStruct.hours, 23, -1);
         }
         else if ((data.point.x > CARD_C + touch_padding) && (data.point.y < CARD_C - touch_padding))
         {
-          timeStruct.minutes++;
+          timeStruct.minutes = incrementTime(timeStruct.minutes, 59, 1);
         }
         else if ((data.point.x > CARD_C + touch_padding) && (data.point.y > CARD_C + touch_padding))
         {
-          timeStruct.minutes--;
+          timeStruct.minutes = incrementTime(timeStruct.minutes, 59, -1);
         }
       }
     }
