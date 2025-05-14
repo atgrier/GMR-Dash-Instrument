@@ -22,9 +22,9 @@ uint8_t instr_prev = -1;
 
 // TODO: Generally add error handling for instruments and external calls
 
-// =========================================================================
-// Setup
-// =========================================================================
+/**
+ * Arduino setup function, called on startup and wakeup from sleep.
+ */
 void setup()
 {
   Serial.begin(115200);
@@ -56,14 +56,14 @@ void setup()
 #endif
 }
 
-// =========================================================================
-// Loop
-// =========================================================================
+/**
+ * Arduino loop.
+ */
 void loop()
 {
   if (instr == 0)
   {
-    clockInstrument(&instrument, &helper, true);
+    clockInstrument(&instrument, &helper, false);
   }
   else if (instr == 1)
   {
