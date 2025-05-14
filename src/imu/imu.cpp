@@ -1,7 +1,5 @@
 /**
  * IMU instruments.
- *
- * I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against any background color, i.e. when passing in 0x00FFFFFF
  */
 #include <SparkFun_BNO080_Arduino_Library.h>
 

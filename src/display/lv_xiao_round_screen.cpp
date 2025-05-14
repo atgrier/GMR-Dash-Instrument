@@ -1,7 +1,5 @@
 /**
  * Display and touch driver for XIAO round screen.
- *
- * I had to modify C:\Users\Alan\OneDrive\Documents\Arduino\libraries\TFT_eSPI\User_Setups\Setup66_Seeed_XIAO_Round.h for the QTPY
  */
 #include <lvgl.h>
 #include <SPI.h>

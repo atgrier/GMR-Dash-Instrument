@@ -1,7 +1,6 @@
 /**
  * Land Rover LR4 Clock.
  *
- * I had to modify TFT_eSPI::drawArc so that it would anti-alias properly against any background color, i.e. when passing in 0x00FFFFFF
  * RTC Calibration: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#off-line-manual-calibration-of-the-rtc
  * Get RTC Time: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#get-rtc-time
  */

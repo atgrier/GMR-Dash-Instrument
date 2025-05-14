@@ -1,7 +1,7 @@
 /**
  * Screen assignments.
  */
-#define SCREEN_SIZE 240
+#define SCREEN_SIZE TFT_WIDTH
 #define CARD_SIZE 240.0f
 #define CARD_R (CARD_SIZE / 2.0f)
 #define CENTER_OFFSET ((CARD_SIZE - SCREEN_SIZE) / 2.0f) // To the left and up (negative in both X and Y)
