@@ -5,8 +5,6 @@
  * Get RTC Time: https://wiki.seeedstudio.com/seeedstudio_round_display_usage/#get-rtc-time
  */
 #include <I2C_BM8563.h>
-#include <TFT_eSPI.h>
-#include <lvgl.h>
 #include <SoftwareLin.h>
 
 #include "lr_clock.h"

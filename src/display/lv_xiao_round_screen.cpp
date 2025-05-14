@@ -1,10 +1,8 @@
 /**
  * Display and touch driver for XIAO round screen.
  */
-#include <lvgl.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <TFT_eSPI.h>
 
 #include "lv_xiao_round_screen.h"
 #include "../pins.h"
