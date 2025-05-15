@@ -1,4 +1,4 @@
-# GMR Dash Instrument
+# GMR Land-o-Meter
 
 This project replicates the analog dashboard clock found in many late aughts and early teens Land
 Rovers, with the addition of the following information displays:
@@ -27,7 +27,7 @@ flowchart LR
     C -.-> A
 ```
 
-### Entering Sleep
+### Deep Sleep
 
 Sleep mode may be manually entered on any screen by triple-tapping.
 
@@ -44,9 +44,9 @@ While on the clock screen, the following operations are allowed:
 A double-tap in this mode re-initializes the IMU, which can be useful in case the microcontroller
 stops receiving data from it.
 
-# Heading Indicator
+### Heading Indicator
 
-There are no specific operations allowed in this mode.
+There are no operations specific to the heading indicator..
 
 ## Project Dependencies
 - https://github.com/Seeed-Studio/Seeed_Arduino_RoundDisplay
