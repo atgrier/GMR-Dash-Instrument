@@ -22,7 +22,7 @@ The user may single-tap on any screen to cycle to the next mode. The cycle order
 
 ```mermaid
 flowchart LR
-    A[Clock (startup)] --> B[Inclinometer]
+    A["Clock (startup)"] --> B[Inclinometer]
     B --> C[Heading Indicator]
     C -.-> A
 ```
