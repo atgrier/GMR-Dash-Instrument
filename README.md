@@ -45,8 +45,6 @@ A double-tap in either inclineter or heading modes will re-initialize the IMU, w
 in case the microcontroller stops receiving data from it.
 
 
-There are no operations specific to the heading indicator..
-
 ## Project Dependencies
 - https://github.com/Seeed-Studio/Seeed_Arduino_RoundDisplay
 - https://github.com/lvgl/lvgl
