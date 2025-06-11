@@ -23,6 +23,14 @@ euler_t ypr;
 
 /**
  * Initialize the BNO085 IMU.
+ *
+ * Orientation Modes:
+ * - Orientation Vector
+ *   - Susceptible to large errors due to vehicle's acceleraion, i.e. it doesn't seem to adequately separate acceleration due to gravity to other sources
+ * - AR/VR-Stabilized Orientation Vector
+ *   - Total errors are smaller, but it very quickly gets off, especially when turning, and takes a long time once stationary/non-accelerating to reset
+ * - Gyro (Integrated) Rotation Vector
+ *   - This is sometimes better, but sometimes much worse
  */
 void setupIMU()
 {
@@ -121,10 +129,16 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
       {
         justReset = false;
         quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
+        Serial.print("Pitch: ");
+        Serial.print(ypr.pitch);
+        Serial.print(" Roll: ");
+        Serial.print(ypr.roll);
+        Serial.print(" Yaw: ");
+        Serial.println(ypr.yaw);
         switch (instr_type)
         {
         case ATTITUDE:
-          drawAttitude(spr, ypr.pitch, ypr.roll);
+          drawAttitude(spr, -ypr.pitch, ypr.roll);
           break;
         case COMPASS:
           drawCompass(spr, hlpr, word_hlpr, -ypr.yaw);

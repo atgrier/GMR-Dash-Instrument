@@ -39,12 +39,11 @@ While on the clock screen, the following operations are allowed:
 |------------|------------|
 | Resynchronize RTC time from the vehicle's LIN bus. | Enter manual RTC setting mode. Arrows on the screen are drawn to indicate where to press to increment the minutes and hours up or down. Tapping the respective arrow increments the respective time element by one. This mode is automatically exited after several seconds of inactivity (no taps on screen). |
 
-### Inclinometer
+### IMU Instruments
 
-A double-tap in this mode re-initializes the IMU, which can be useful in case the microcontroller
-stops receiving data from it.
+A double-tap in either inclineter or heading modes will re-initialize the IMU, which can be useful
+in case the microcontroller stops receiving data from it.
 
-### Heading Indicator
 
 There are no operations specific to the heading indicator..
 
