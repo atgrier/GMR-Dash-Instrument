@@ -138,10 +138,10 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
         switch (instr_type)
         {
         case ATTITUDE:
-          drawAttitude(spr, -ypr.pitch, ypr.roll);
+          drawAttitude(spr, ypr.pitch, -ypr.roll - 70);  // Pitch and roll are reversed based on the mounting orientation
           break;
         case COMPASS:
-          drawCompass(spr, hlpr, word_hlpr, -ypr.yaw);
+          drawCompass(spr, hlpr, word_hlpr, ypr.yaw + 135);  // TODO: Calibrate compass
           break;
         }
         if ((millis() - millisBacklight) >= 1000)

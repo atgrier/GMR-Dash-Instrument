@@ -181,7 +181,7 @@ void drawDial(TFT_eSprite *spr, TFT_eSprite *word_hlpr, float heading)
 void drawCompass(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, float heading)
 {
   spr->fillSprite(COLOR_BG);
-  drawDial(spr, word_hlpr, heading);  // TODO: Calibrate compass
+  drawDial(spr, word_hlpr, heading);
   hlpr->pushToSprite(spr, 0, 0, COLOR_BG);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }

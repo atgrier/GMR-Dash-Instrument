@@ -13,3 +13,4 @@
 #define COLOR_BG_NIGHT 0x0000
 #define COLOR_FG 0xEF7D
 #define COLOR_FG_NIGHT 0x774D
+#define COLOR_GREY 0x39E7

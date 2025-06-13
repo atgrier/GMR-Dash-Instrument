@@ -7,7 +7,7 @@
 #include "../pins.h"
 #include "../screen.h"
 
-float attitudeTicks[2][28][3][2];
+float attitudeTicks[2][24][3][2];
 
 /**
  * Setup the attitude instrument, i.e. pre-compute static trigonometric values.
@@ -31,7 +31,7 @@ void setupAttitude()
       attitudeTicks[0][index1][2][0] = angle;
       index1++;
     }
-    for (int8_t angle = -50; angle <= 50; angle += 5)
+    for (int8_t angle = -40; angle <= 40; angle += 5)
     { // 5 degree ticks
       if (!(angle % 15))
       {
@@ -94,14 +94,14 @@ void drawBackground(TFT_eSprite *spr, float pitch)
         attitudeTicks[0][i][0][0], attitudeTicks[0][i][0][1],
         attitudeTicks[0][i][1][0], attitudeTicks[0][i][1][1],
         attitudeTicks[0][i][2][0] == 0 ? 5.0f : 3.0f,
-        attitudeTicks[0][i][2][0] == 0 ? COLOR_FG : COLOR_CAR);
+        attitudeTicks[0][i][2][0] == 0 ? COLOR_FG : COLOR_GREY);
   }
-  for (uint8_t i = 0; i < 28; i++)
+  for (uint8_t i = 0; i < 24; i++)
   {
     spr->drawWideLine(
         attitudeTicks[1][i][0][0], attitudeTicks[1][i][0][1],
         attitudeTicks[1][i][1][0], attitudeTicks[1][i][1][1],
-        2.5f, COLOR_CAR);
+        2.5f, COLOR_GREY);
   }
 }
 
@@ -169,7 +169,7 @@ void drawForeground(TFT_eSprite *spr, float roll)
  */
 void drawAttitude(TFT_eSprite *spr, float roll, float pitch)
 {
-  drawBackground(spr, pitch - 70);     // TODO: Calibrate zero pitch offset
-  drawForeground(spr, roll * ROLL_MULTIPLIER); // TODO: Calibrate zero roll offset
+  drawBackground(spr, pitch);
+  drawForeground(spr, roll * ROLL_MULTIPLIER);
   spr->pushSprite(-CENTER_OFFSET, -CENTER_OFFSET);
 }
