@@ -50,7 +50,7 @@ enum imu_instrument_t
 #endif
 
 void mmToPx(float x, float y, float *xp, float *yp, float roll);
-void quaternionToEuler(float q1, float q2, float q3, euler_t *_data);
+void quaternionToEuler(double q1, double q2, double q3, euler_t *_data);
 float getAngle(float x_c, float y_c, float x, float y);
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type);
 void sleepIMU();

@@ -14,9 +14,9 @@
 ICM_20948_I2C icm20948;
 
 bool imuInitialized = false;
-uint8_t millisPerReading = 50;
-uint8_t missedReadings = 0;
-bool justReset = true;
+// uint8_t millisPerReading = 50;
+// uint8_t missedReadings = 0;
+// bool justReset = true;
 
 euler_t ypr;
 
@@ -45,7 +45,7 @@ void setupIMU()
   while (!imuInitialized) {
     success &= (icm20948.initializeDMP() == ICM_20948_Stat_Ok);
     success &= (icm20948.enableDMPSensor(INV_ICM20948_SENSOR_ORIENTATION) == ICM_20948_Stat_Ok);
-    success &= (icm20948.setDMPODRrate(DMP_ODR_Reg_Quat9, 0) == ICM_20948_Stat_Ok);
+    success &= (icm20948.setDMPODRrate(DMP_ODR_Reg_Quat9, 4) == ICM_20948_Stat_Ok);
     success &= (icm20948.enableFIFO() == ICM_20948_Stat_Ok);
     success &= (icm20948.enableDMP() == ICM_20948_Stat_Ok);
     success &= (icm20948.resetDMP() == ICM_20948_Stat_Ok);
@@ -65,8 +65,8 @@ void resetIMU()
 {
   sleepIMU();
   imuInitialized = false;
-  missedReadings = 0;
-  justReset = true;
+  // missedReadings = 0;
+  // justReset = true;
   setupIMU();
 }
 
@@ -106,8 +106,8 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
     break;
   }
 
-  unsigned long millisNow;
-  unsigned long millisPrevious = millis();
+  // unsigned long millisNow;
+  // unsigned long millisPrevious = millis();
   unsigned long millisBacklight = millis();
 
   // Only 1 font used in the sprite, so can remain loaded
@@ -121,17 +121,23 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
 
   while (true)
   {
-    millisNow = millis();
-    if (millisNow - millisPrevious >= millisPerReading)
-    {
-      millisPrevious += millisPerReading;
+    // millisNow = millis();
+    // if (millisNow - millisPrevious >= millisPerReading)
+    // {
+      // millisPrevious += millisPerReading;
+      icm_20948_DMP_data_t data;
+      icm20948.readDMPdataFromFIFO(&data);
 
-      if (icm20948.status == ICM_20948_Stat_FIFOMoreDataAvail)
+      if ((icm20948.status == ICM_20948_Stat_Ok) || (icm20948.status == ICM_20948_Stat_FIFOMoreDataAvail))
       {
-        justReset = false;
-        icm_20948_DMP_data_t data;
-        icm20948.readDMPdataFromFIFO(&data);
-        quaternionToEuler((double)data.Quat9.Data.Q1, (double)data.Quat9.Data.Q2, (double)data.Quat9.Data.Q3, &ypr);
+        if ((data.header & DMP_header_bitmap_Quat9) <= 0) { continue; }
+        // justReset = false;
+        quaternionToEuler(
+          ((double)data.Quat9.Data.Q1) / 1073741824.0,
+          ((double)data.Quat9.Data.Q2) / 1073741824.0,
+          ((double)data.Quat9.Data.Q3) / 1073741824.0,
+          &ypr
+        );
         Serial.print("Pitch: ");
         Serial.print(ypr.pitch);
         Serial.print(" Roll: ");
@@ -141,7 +147,7 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
         switch (instr_type)
         {
         case ATTITUDE:
-          drawAttitude(spr, ypr.pitch, -ypr.roll - 70);  // Pitch and roll are reversed based on the mounting orientation
+          drawAttitude(spr, ypr.roll, ypr.pitch - 70);  // Pitch and roll are reversed based on the mounting orientation
           break;
         case COMPASS:
           drawCompass(spr, hlpr, word_hlpr, ypr.yaw + 135);  // TODO: Calibrate compass
@@ -152,15 +158,15 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
           handleBacklight(100);
           millisBacklight = millis();
         }
-      }
-      else
-      {
-        missedReadings++;
-        if (missedReadings > 50 || ((!justReset) && (missedReadings > 20)))
-        {
-          resetIMU();
-        }
-      }
+      // }
+      // else
+      // {
+      //   missedReadings++;
+      //   if (missedReadings > 50 || ((!justReset) && (missedReadings > 20)))
+      //   {
+      //     resetIMU();
+      //   }
+      // }
     }
     int8_t click = clickType(3);
     if (click == 1)
@@ -198,7 +204,7 @@ void mmToPx(float x, float y, float *xp, float *yp, float roll)
 /**
  * Get Euler orientation angles from quaternion values.
  */
-void quaternionToEuler(float q1, float q2, float q3, euler_t *_data)
+void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
 {
   float sq1 = sq(q1);
   float sq2 = sq(q2);
