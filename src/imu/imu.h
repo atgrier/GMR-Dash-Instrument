@@ -2,8 +2,16 @@
  * IMU instruments.
  */
 #include <TFT_eSPI.h>
+#include "../pins.h"
 
-#define BNO085_ADDR 0x4A
+#define ICM20948_ADDR 0x69
+#if defined(XIAO_ESP32S3)
+#define ICM20948_WIRE Wire
+#elif defined(QTPY_ESP32S3)
+#define ICM20948_WIRE Wire1
+#else
+#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
+#endif
 
 #define COLOR_SKY 0x4457
 #define COLOR_GROUND 0x9B06
@@ -42,7 +50,7 @@ enum imu_instrument_t
 #endif
 
 void mmToPx(float x, float y, float *xp, float *yp, float roll);
-void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data);
+void quaternionToEuler(float q1, float q2, float q3, euler_t *_data);
 float getAngle(float x_c, float y_c, float x, float y);
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type);
 void sleepIMU();
