@@ -147,10 +147,10 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
         switch (instr_type)
         {
         case ATTITUDE:
-          drawAttitude(spr, ypr.roll, ypr.pitch - 70);  // Pitch and roll are reversed based on the mounting orientation
+          drawAttitude(spr, ypr.roll, ypr.pitch);
           break;
         case COMPASS:
-          drawCompass(spr, hlpr, word_hlpr, ypr.yaw + 135);  // TODO: Calibrate compass
+          drawCompass(spr, hlpr, word_hlpr, ypr.yaw);  // TODO: Calibrate compass
           break;
         }
         if ((millis() - millisBacklight) >= 1000)
@@ -206,24 +206,37 @@ void mmToPx(float x, float y, float *xp, float *yp, float roll)
  */
 void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
 {
-  float sq1 = sq(q1);
-  float sq2 = sq(q2);
-  float sq3 = sq(q3);
-  float q0 = sqrt(1.0 - (sq1 + sq2 + sq3));
-  float sq0 = sq(q0);
+  float qr = sqrt(1.0 - (sq(q1) + sq(q2) + sq(q3)));
 
-  float qr = q0;
-  float qi = q2;
-  float qj = q1;
+  // Need to re-orient quaternion axes
+  float qi = q1;
+  float qj = -q2;
   float qk = -q3;
-  float sqr = sq0;
-  float sqi = sq2;
-  float sqj = sq1;
-  float sqk = sq3;
 
-  _data->yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) / DEG2RAD;
-  _data->pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) / DEG2RAD;
-  _data->roll = atan2(2.0 * (qj * qk + qi * qr), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
+  // Quaternion rotation for pitch offset
+  float qx = sin(PITCH_OFFSET * DEG2RAD / 2.0);
+  float qy = 0.0;
+  float qz = 0.0;
+  float qw = cos(PITCH_OFFSET * DEG2RAD / 2.0);
+
+  float qip = qi;
+  float qkp = qk;
+  float qjp = qj;
+  float qrp = qr;
+
+  qr = (qrp * qw) - (qip * qx) - (qjp * qy) - (qkp * qz);
+  qi = (qrp * qx) + (qip * qw) + (qjp * qz) - (qkp * qy);
+  qj = (qrp * qy) - (qip * qz) + (qjp * qw) + (qkp * qx);
+  qk = (qrp * qz) + (qip * qy) - (qjp * qx) + (qkp * qw);
+
+  float sqr = sq(qr);
+  float sqi = sq(qi);
+  float sqj = sq(qj);
+  float sqk = sq(qk);
+
+  _data->yaw = COMPASS_OFFSET - (atan2(2.0 * ((qi * qj) + (qk * qr)), (sqi - sqj - sqk + sqr)) / DEG2RAD);
+  _data->roll = asin(-2.0 * ((qi * qk) - (qj * qr)) / (sqi + sqj + sqk + sqr)) / DEG2RAD;
+  _data->pitch = atan2(2.0 * ((qj * qk) + (qi * qr)), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
 }
 
 /**
