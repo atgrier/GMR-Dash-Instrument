@@ -1,82 +1,83 @@
 /**
  * IMU instruments.
  */
-#include <SparkFun_BNO080_Arduino_Library.h>
+#include <ICM_20948.h>
 
 #include "imu.h"
 #include "imu_attitude.h"
 #include "imu_compass.h"
 #include "../common.h"
-#include "../pins.h"
 #include "../screen.h"
 #include "../fonts/EurostileLTProUnicodeDemi24.h"
 #include "../sleep/sleep.h"
 
-BNO080 bno085;
+ICM_20948_I2C icm20948;
 
 bool imuInitialized = false;
-uint8_t millisPerReading = 50;
-uint8_t missedReadings = 0;
-bool justReset = true;
+// uint8_t millisPerReading = 50;
+// uint8_t missedReadings = 0;
+// bool justReset = true;
 
 euler_t ypr;
 
 /**
- * Initialize the BNO085 IMU.
+ * Initialize the ICM-20948 IMU.
  *
  * Orientation Modes:
- * - Orientation Vector
- *   - Susceptible to large errors due to vehicle's acceleraion, i.e. it doesn't seem to adequately separate acceleration due to gravity to other sources
- * - AR/VR-Stabilized Orientation Vector
- *   - Total errors are smaller, but it very quickly gets off, especially when turning, and takes a long time once stationary/non-accelerating to reset
- * - Gyro (Integrated) Rotation Vector
- *   - This is sometimes better, but sometimes much worse
  */
 void setupIMU()
 {
   unsigned long start = millis();
-#if defined(XIAO_ESP32S3)
-  while (!bno085.begin(BNO085_ADDR))
-  {
-#elif defined(QTPY_ESP32S3)
-  while (!bno085.begin(BNO085_ADDR, &Wire1))
-  {
-#else
-#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
-#endif
-    Serial.println("Failed to find BNO08x chip");
+  while (!imuInitialized) {
+    icm20948.begin(ICM20948_WIRE, ICM20948_ADDR);
+    if (icm20948.status == ICM_20948_Stat_Ok) {
+      break;
+    }
+    Serial.println("Failed to find ICM-20948 chip.");
     if (millis() - start > 1000)
     {
       return;
     }
     delay(10);
   }
-  Serial.println("BNO08x Found!");
-  bno085.enableRotationVector(millisPerReading);
+  Serial.println("ICM-20948 Found.");
+  bool success = true;
+  while (!imuInitialized) {
+    success &= (icm20948.initializeDMP() == ICM_20948_Stat_Ok);
+    success &= (icm20948.enableDMPSensor(INV_ICM20948_SENSOR_ORIENTATION) == ICM_20948_Stat_Ok);
+    success &= (icm20948.setDMPODRrate(DMP_ODR_Reg_Quat9, 4) == ICM_20948_Stat_Ok);
+    success &= (icm20948.enableFIFO() == ICM_20948_Stat_Ok);
+    success &= (icm20948.enableDMP() == ICM_20948_Stat_Ok);
+    success &= (icm20948.resetDMP() == ICM_20948_Stat_Ok);
+    success &= (icm20948.resetFIFO() == ICM_20948_Stat_Ok);
+    if (success) {
+      break;
+    }
+  }
+  Serial.println("ICM-20948 DMP enabled.");
   imuInitialized = true;
 }
 
 /**
- * Re-initialze the BNO085 IMU, e.g. for when it stops providing data.
+ * Re-initialze the ICM-20948 IMU, e.g. for when it stops providing data.
  */
 void resetIMU()
 {
-  bno085.modeSleep();
-  delay(10);
+  sleepIMU();
   imuInitialized = false;
-  missedReadings = 0;
-  justReset = true;
+  // missedReadings = 0;
+  // justReset = true;
   setupIMU();
 }
 
 /**
- * Put BNO085 IMU to sleep.
+ * Put ICM-20948 IMU to sleep.
  */
 void sleepIMU()
 {
   if (imuInitialized)
   {
-    bno085.modeSleep();
+    icm20948.sleep();
   }
   delay(10);
 }
@@ -105,8 +106,8 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
     break;
   }
 
-  unsigned long millisNow;
-  unsigned long millisPrevious = millis();
+  // unsigned long millisNow;
+  // unsigned long millisPrevious = millis();
   unsigned long millisBacklight = millis();
 
   // Only 1 font used in the sprite, so can remain loaded
@@ -120,15 +121,23 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
 
   while (true)
   {
-    millisNow = millis();
-    if (millisNow - millisPrevious >= millisPerReading)
-    {
-      millisPrevious += millisPerReading;
+    // millisNow = millis();
+    // if (millisNow - millisPrevious >= millisPerReading)
+    // {
+      // millisPrevious += millisPerReading;
+      icm_20948_DMP_data_t data;
+      icm20948.readDMPdataFromFIFO(&data);
 
-      if (bno085.dataAvailable())
+      if ((icm20948.status == ICM_20948_Stat_Ok) || (icm20948.status == ICM_20948_Stat_FIFOMoreDataAvail))
       {
-        justReset = false;
-        quaternionToEuler(bno085.getQuatReal(), bno085.getQuatI(), bno085.getQuatJ(), bno085.getQuatK(), &ypr);
+        if ((data.header & DMP_header_bitmap_Quat9) <= 0) { continue; }
+        // justReset = false;
+        quaternionToEuler(
+          ((double)data.Quat9.Data.Q1) / 1073741824.0,
+          ((double)data.Quat9.Data.Q2) / 1073741824.0,
+          ((double)data.Quat9.Data.Q3) / 1073741824.0,
+          &ypr
+        );
         Serial.print("Pitch: ");
         Serial.print(ypr.pitch);
         Serial.print(" Roll: ");
@@ -138,10 +147,10 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
         switch (instr_type)
         {
         case ATTITUDE:
-          drawAttitude(spr, ypr.pitch, -ypr.roll - 70);  // Pitch and roll are reversed based on the mounting orientation
+          drawAttitude(spr, ypr.roll, ypr.pitch);
           break;
         case COMPASS:
-          drawCompass(spr, hlpr, word_hlpr, ypr.yaw + 135);  // TODO: Calibrate compass
+          drawCompass(spr, hlpr, word_hlpr, ypr.yaw);  // TODO: Calibrate compass
           break;
         }
         if ((millis() - millisBacklight) >= 1000)
@@ -149,15 +158,15 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
           handleBacklight(100);
           millisBacklight = millis();
         }
-      }
-      else
-      {
-        missedReadings++;
-        if (missedReadings > 50 || ((!justReset) && (missedReadings > 20)))
-        {
-          resetIMU();
-        }
-      }
+      // }
+      // else
+      // {
+      //   missedReadings++;
+      //   if (missedReadings > 50 || ((!justReset) && (missedReadings > 20)))
+      //   {
+      //     resetIMU();
+      //   }
+      // }
     }
     int8_t click = clickType(3);
     if (click == 1)
@@ -195,16 +204,39 @@ void mmToPx(float x, float y, float *xp, float *yp, float roll)
 /**
  * Get Euler orientation angles from quaternion values.
  */
-void quaternionToEuler(float qr, float qi, float qj, float qk, euler_t *_data)
+void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
 {
+  float qr = sqrt(1.0 - (sq(q1) + sq(q2) + sq(q3)));
+
+  // Need to re-orient quaternion axes
+  float qi = q1;
+  float qj = -q2;
+  float qk = -q3;
+
+  // Quaternion rotation for pitch offset
+  float qx = sin(PITCH_OFFSET * DEG2RAD / 2.0);
+  float qy = 0.0;
+  float qz = 0.0;
+  float qw = cos(PITCH_OFFSET * DEG2RAD / 2.0);
+
+  float qip = qi;
+  float qkp = qk;
+  float qjp = qj;
+  float qrp = qr;
+
+  qr = (qrp * qw) - (qip * qx) - (qjp * qy) - (qkp * qz);
+  qi = (qrp * qx) + (qip * qw) + (qjp * qz) - (qkp * qy);
+  qj = (qrp * qy) - (qip * qz) + (qjp * qw) + (qkp * qx);
+  qk = (qrp * qz) + (qip * qy) - (qjp * qx) + (qkp * qw);
+
   float sqr = sq(qr);
   float sqi = sq(qi);
   float sqj = sq(qj);
   float sqk = sq(qk);
 
-  _data->yaw = atan2(2.0 * (qi * qj + qk * qr), (sqi - sqj - sqk + sqr)) / DEG2RAD;
-  _data->pitch = asin(-2.0 * (qi * qk - qj * qr) / (sqi + sqj + sqk + sqr)) / DEG2RAD;
-  _data->roll = atan2(2.0 * (qj * qk + qi * qr), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
+  _data->yaw = COMPASS_OFFSET - (atan2(2.0 * ((qi * qj) + (qk * qr)), (sqi - sqj - sqk + sqr)) / DEG2RAD);
+  _data->roll = asin(-2.0 * ((qi * qk) - (qj * qr)) / (sqi + sqj + sqk + sqr)) / DEG2RAD;
+  _data->pitch = atan2(2.0 * ((qj * qk) + (qi * qr)), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
 }
 
 /**
