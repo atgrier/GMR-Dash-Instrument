@@ -15,9 +15,9 @@
 
 #define SERIAL_PORT Serial
 
-#define WIRE_PORT Wire // Your desired Wire port.      Used when "USE_SPI" is not defined
-#define AD0_VAL 1      // The value of the last bit of the I2C address.                \
-  // On the SparkFun 9DoF IMU breakout the default is 1, and when \
+#define WIRE_PORT Wire // Your desired Wire port.
+#define AD0_VAL 1      // The value of the last bit of the I2C address.
+  // On the SparkFun 9DoF IMU breakout the default is 1, and when
   // the ADR jumper is closed the value becomes 0
 
 ICM_20948_I2C myICM; // Otherwise create an ICM_20948_I2C object
@@ -44,11 +44,7 @@ void setup()
     while (!initialized)
     {
 
-#ifdef USE_SPI
-        myICM.begin(CS_PIN, SPI_PORT);
-#else
         myICM.begin(WIRE_PORT, AD0_VAL);
-#endif
 
         SERIAL_PORT.print(F("Initialization of the sensor returned: "));
         SERIAL_PORT.println(myICM.statusString());

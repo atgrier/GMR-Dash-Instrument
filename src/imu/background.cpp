@@ -21,7 +21,7 @@ ICM_20948_I2C imu;
 
 // Gyro default scale 250 dps. Convert to radians/sec subtract offsets
 float Gscale = (M_PI / 180.0) * 0.00763; // 250 dps scale sensitivity = 131 dps/LSB
-float G_offset[3] = {74.3, 153.8, -5.5};
+float G_offset[3] = {62.7, -4.7, -22.3};
 
 // Accel scale: divide by 16604.0 to normalize
 float A_B[3]{79.60, -18.56, 383.31};
