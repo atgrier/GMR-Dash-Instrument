@@ -9,6 +9,7 @@
 #include "src/screen.h"
 #include "src/display/lv_xiao_round_screen.h"
 #include "src/sleep/sleep.h"
+#include "src/imu/background.h"
 #include "src/imu/imu.h"
 #include "src/clock/lr_clock.h"
 
@@ -45,15 +46,23 @@ void setup()
   pinMode(TOUCH_INT, INPUT_PULLUP);
   pinMode(VEHICLE_BACKLIGHT, INPUT);
   handleBacklight(100);
+
   Wire.begin();
-#if defined(XIAO_ESP32S3)
-  Wire.setTimeout(4);
-#elif defined(QTPY_ESP32S3)
+#ifdef QTPY_ESP32S3
   Wire1.begin();
-  Wire1.setTimeout(4);
-#else
-#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
+  WIRE_PORT.setClock(400000);
+  WIRE_PORT.setTimeout(4);
+
+  xTaskCreatePinnedToCore(
+    &imuTask, //Function to implement the task
+    "imuTask", //Name of the task
+    6000, //Stack size in words
+    NULL, //Task input parameter
+    0, //Priority of the task
+    NULL, //Task handle.
+    1 //Core where the task should run
+  );
   setupIMU();
 }
 

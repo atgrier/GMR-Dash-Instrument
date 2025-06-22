@@ -27,3 +27,11 @@
 #define XIAO_DC D3
 #define XIAO_CS D1
 #endif
+
+#if defined(XIAO_ESP32S3)
+#define WIRE_PORT Wire
+#elif defined(QTPY_ESP32S3)
+#define WIRE_PORT Wire1
+#else
+#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
+#endif

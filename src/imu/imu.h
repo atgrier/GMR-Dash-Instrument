@@ -4,15 +4,6 @@
 #include <TFT_eSPI.h>
 #include "../pins.h"
 
-#define ICM20948_ADDR 0x69
-#if defined(XIAO_ESP32S3)
-#define ICM20948_WIRE Wire
-#elif defined(QTPY_ESP32S3)
-#define ICM20948_WIRE Wire1
-#else
-#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
-#endif
-
 #define COLOR_SKY 0x4457
 #define COLOR_GROUND 0x9B06
 #define COLOR_POINTER 0xF7BE
@@ -37,13 +28,6 @@
 
 #ifndef IMU_DEFINED
 #define IMU_DEFINED
-typedef struct euler_t
-{
-  float yaw;
-  float pitch;
-  float roll;
-};
-
 enum imu_instrument_t
 {
   ATTITUDE,
@@ -51,9 +35,4 @@ enum imu_instrument_t
 };
 #endif
 
-void mmToPx(float x, float y, float *xp, float *yp, float roll);
-void quaternionToEuler(double q1, double q2, double q3, euler_t *_data);
-float getAngle(float x_c, float y_c, float x, float y);
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type);
-void sleepIMU();
-void setupIMU();
