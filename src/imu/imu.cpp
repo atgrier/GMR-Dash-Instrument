@@ -207,6 +207,16 @@ void mmToPx(float x, float y, float *xp, float *yp, float roll)
 }
 
 /**
+ * Multiply two quaternions together.
+ */
+void multiplyQuaternion(float qr, float qi, float qj, float qk, float qw, float qx, float qy, float qz, float *qr_o, float *qi_o, float *qj_o, float *qk_o) {
+  *qr_o = (qr * qw) - (qi * qx) - (qj * qy) - (qk * qz);
+  *qi_o = (qr * qx) + (qi * qw) + (qj * qz) - (qk * qy);
+  *qj_o = (qr * qy) - (qi * qz) + (qj * qw) + (qk * qx);
+  *qk_o = (qr * qz) + (qi * qy) - (qj * qx) + (qk * qw);
+}
+
+/**
  * Get Euler orientation angles from quaternion values.
  */
 void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
@@ -223,11 +233,7 @@ void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
   float qjp = qj;
   float qrp = qr;
 
-  qr = (qrp * qw) - (qip * qx) - (qjp * qy) - (qkp * qz);
-  qi = (qrp * qx) + (qip * qw) + (qjp * qz) - (qkp * qy);
-  qj = (qrp * qy) - (qip * qz) + (qjp * qw) + (qkp * qx);
-  qk = (qrp * qz) + (qip * qy) - (qjp * qx) + (qkp * qw);
-
+  multiplyQuaternion(qrp, qip, qjp, qkp, qw, qx, qy, qz, &qr, &qi, &qj, &qk);
   float sqr = sq(qr);
   float sqi = sq(qi);
   float sqj = sq(qj);
