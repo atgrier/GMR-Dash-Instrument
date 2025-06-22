@@ -56,3 +56,4 @@ void quaternionToEuler(double q1, double q2, double q3, euler_t *_data);
 float getAngle(float x_c, float y_c, float x, float y);
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type);
 void sleepIMU();
+void setupIMU();

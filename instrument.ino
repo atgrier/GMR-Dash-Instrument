@@ -54,6 +54,7 @@ void setup()
 #else
 #error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
+  setupIMU();
 }
 
 /**
