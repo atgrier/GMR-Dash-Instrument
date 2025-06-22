@@ -18,6 +18,11 @@ bool imuInitialized = false;
 // uint8_t missedReadings = 0;
 // bool justReset = true;
 
+// Quaternion rotation for pitch offset
+float qx = sin(PITCH_OFFSET * DEG2RAD / 2.0);
+float qy = 0.0;
+float qz = 0.0;
+float qw = cos(PITCH_OFFSET * DEG2RAD / 2.0);
 euler_t ypr;
 
 /**
@@ -212,12 +217,6 @@ void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
   float qi = q1;
   float qj = -q2;
   float qk = -q3;
-
-  // Quaternion rotation for pitch offset
-  float qx = sin(PITCH_OFFSET * DEG2RAD / 2.0);
-  float qy = 0.0;
-  float qz = 0.0;
-  float qw = cos(PITCH_OFFSET * DEG2RAD / 2.0);
 
   float qip = qi;
   float qkp = qk;
