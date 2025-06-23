@@ -18,16 +18,17 @@ class Magnetometer(object):
     MField = 1000  #arbitrary norm of magnetic field vectors
 
     def __init__(self, F=MField):
-
-
         # initialize values
         self.F   = F
         self.b   = np.zeros([3, 1])
         self.A_1 = np.eye(3)
+        data = np.loadtxt("mag3_raw.csv", delimiter=',')
+        print("Accelerometer Calibration")
+        self.run(data[:, :3], "acc")
+        print("Magnetometer Calibration")
+        self.run(data[:, 3:], "mag")
 
-    def run(self):
-
-        data = np.loadtxt("mag3_raw.csv",delimiter=',')
+    def run(self, data, name):
         print("shape of data array:",data.shape)
         #print("datatype of data:",data.dtype)
         print("First 5 rows raw:\n", data[:5])
@@ -56,7 +57,6 @@ class Magnetometer(object):
 
         result = []
         for row in data:
-
             # subtract the hard iron offset
             xm_off  = row[0]-self.b[0]
             ym_off  = row[1]-self.b[1]
@@ -78,7 +78,7 @@ class Magnetometer(object):
         print("First 5 rows calibrated:\n", result[:5])
 
         #save corrected data to file "out.txt"
-        np.savetxt('out.txt', result, fmt='%f', delimiter=' ,')
+        np.savetxt(f"out_{name}.txt", result, fmt='%f', delimiter=' ,')
 
         print("*************************" )
         print("code to paste (edits required) : " )
@@ -88,7 +88,7 @@ class Magnetometer(object):
         print("\n")
 
         self.A_1 = np.round(self.A_1,5)
-        print("float A_inv[3][3] = {")
+        print("float Ainv[3][3] = {")
         print("{", self.A_1[0,0],",", self.A_1[0,1],",", self.A_1[0,2], "},")
         print("{", self.A_1[1,0],",", self.A_1[1,1],",", self.A_1[2,1], "},")
         print("{", self.A_1[2,0],",", self.A_1[2,1],",", self.A_1[2,2], "}};")
@@ -115,7 +115,6 @@ class Magnetometer(object):
                fitting," in Geometric Modeling and Processing, 2004.
                Proceedings, vol., no., pp.335-340, 2004
         '''
-
         # D (samples)
         D = np.array([s[0]**2., s[1]**2., s[2]**2.,
                       2.*s[1]*s[2], 2.*s[0]*s[2], 2.*s[0]*s[1],
@@ -160,6 +159,5 @@ class Magnetometer(object):
         return M, n, d
 
 
-
 if __name__=='__main__':
-        Magnetometer().run()
+        Magnetometer()

@@ -17,8 +17,8 @@
 
 #define WIRE_PORT Wire // Your desired Wire port.
 #define AD0_VAL 1      // The value of the last bit of the I2C address.
-  // On the SparkFun 9DoF IMU breakout the default is 1, and when
-  // the ADR jumper is closed the value becomes 0
+                       // On the SparkFun 9DoF IMU breakout the default is 1, and when
+                       // the ADR jumper is closed the value becomes 0
 
 ICM_20948_I2C myICM; // Otherwise create an ICM_20948_I2C object
 
@@ -30,13 +30,13 @@ int acc_mag_count = 300; // collect this many values for acc/mag calibration
 void setup()
 {
 
-    SERIAL_PORT.begin(9600);
+    SERIAL_PORT.begin(115200);
     while (!SERIAL_PORT)
     {
     };
 
     WIRE_PORT.begin();
-    WIRE_PORT.setClock(400000);
+    // WIRE_PORT.setClock(400000);
 
     myICM.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
 
@@ -58,6 +58,14 @@ void setup()
             initialized = true;
         }
     }
+
+    myICM.startupMagnetometer();
+    if (myICM.status != ICM_20948_Stat_Ok)
+    {
+        SERIAL_PORT.print(F("startupMagnetometer returned: "));
+        SERIAL_PORT.println(myICM.statusString());
+    }
+
     // find gyro offsets
     SERIAL_PORT.println(F("Hold sensor still for gyro offset calibration ..."));
     delay(5000);

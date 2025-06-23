@@ -17,25 +17,24 @@
 ICM_20948_I2C imu;
 
 // TODO: Probably need to re-orient code for sensor
-// TODO: Determine calibration values
 
 // Gyro default scale 250 dps. Convert to radians/sec subtract offsets
 float Gscale = (M_PI / 180.0) * 0.00763; // 250 dps scale sensitivity = 131 dps/LSB
-float G_offset[3] = {62.7, -4.7, -22.3};
+float G_offset[3] = {54.5, -8.5, -16.4};
 
 // Accel scale: divide by 16604.0 to normalize
-float A_B[3]{79.60, -18.56, 383.31};
+float A_B[3]{143.43, 105.35, 180.47};
 
-float A_Ainv[3][3]{{1.00847, 0.00470, -0.00428},
-                   {0.00470, 1.00846, -0.00328},
-                   {-0.00428, -0.00328, 0.99559}};
+float A_Ainv[3][3]{{0.0611, 3e-05, -0.00012},
+                   {3e-05, 0.06087, 7e-05},
+                   {-0.00012, 7e-05, 0.06052}};
 
 // Mag scale divide by 369.4 to normalize
-float M_B[3]{-156.70, -52.79, -141.07};
+float M_B[3]{111.47, 44.59, 162.5};
 
-float M_Ainv[3][3]{{1.12823, -0.01142, 0.00980},
-                   {-0.01142, 1.09539, 0.00927},
-                   {0.00980, 0.00927, 1.10625}};
+float M_Ainv[3][3]{{3.84753, -0.06611, 0.02635},
+                   {-0.06611, 3.69417, -0.01908},
+                   {0.02635, -0.01908, 3.67146}};
 
 // These are the free parameters in the Mahony filter and fusion scheme,
 // Kp is not yet optimized (slight overshoot apparent after rapid sensor reorientations). Ki is not used.
@@ -250,7 +249,8 @@ void imuLoop()
 /**
  * Get yaw, pitch, and roll values.
  */
-void getData(euler_t *data) {
+void getData(euler_t *data)
+{
   data = &ypr;
 }
 
@@ -281,7 +281,8 @@ void setupIMU()
 /**
  * Whether the IMU is initialized.
  */
-bool imuReady() {
+bool imuReady()
+{
   return imuInitialized;
 }
 
@@ -313,17 +314,19 @@ void _resetIMU()
 /**
  * IMU background task.
  */
-void imuTask(void*)
+void imuTask(void *)
 {
   setupIMU();
   uint8_t resetCount = resetCounter;
   while (true)
   {
     imuLoop();
-    if (sleepRequested) {
+    if (sleepRequested)
+    {
       _sleepIMU();
     }
-    if (resetCount != resetCounter) {
+    if (resetCount != resetCounter)
+    {
       _resetIMU();
       resetCount = resetCounter;
     }
