@@ -237,14 +237,14 @@ void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, fl
 
 void imuLoop()
 {
-  static float Gxyz[3], Axyz[3], Mxyz[3]; // centered and scaled gyro/accel/mag data
+  static float Gxyz[3], Axyz[3], Mxyz[3]; // Centered and scaled gyro/accel/mag data
 
   if (imu.dataReady())
   {
     imu.getAGMT();
     get_scaled_IMU(Gxyz, Axyz, Mxyz);
 
-    // reconcile magnetometer and accelerometer axes. X axis points magnetic North for yaw = 0
+    // Reconcile magnetometer and accelerometer axes. X axis points magnetic North for yaw = 0
     Mxyz[1] = -Mxyz[1]; // reflect Y and Z
     Mxyz[2] = -Mxyz[2]; // must be done after offsets & scales applied to raw data
     mountingCorrection(Gxyz, Axyz, Mxyz);
