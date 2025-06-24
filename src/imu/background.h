@@ -13,7 +13,6 @@ typedef struct euler_t
 #endif
 
 void sleepIMU();
-void setupIMU();
 void resetIMU();
 bool imuReady();
 void imuTask(void*);

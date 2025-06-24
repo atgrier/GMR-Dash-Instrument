@@ -55,15 +55,14 @@ void setup()
   WIRE_PORT.setTimeout(4);
 
   xTaskCreatePinnedToCore(
-    &imuTask, //Function to implement the task
+    imuTask, //Function to implement the task
     "imuTask", //Name of the task
-    6000, //Stack size in words
+    60000, //Stack size in words
     NULL, //Task input parameter
-    0, //Priority of the task
+    1, //Priority of the task
     NULL, //Task handle.
     1 //Core where the task should run
   );
-  setupIMU();
 }
 
 /**

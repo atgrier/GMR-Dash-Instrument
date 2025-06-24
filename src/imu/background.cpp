@@ -266,6 +266,7 @@ void imuLoop()
       ypr.roll = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
       ypr.pitch = asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD;
       ypr.yaw = atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD;
+      lastUpdate = millis();
     }
   }
 }
@@ -283,7 +284,6 @@ euler_t *getData()
  */
 void setupIMU()
 {
-  unsigned long start = millis();
   while (!imuInitialized)
   {
     imu.begin(WIRE_PORT, ICM20948_ADDR);
@@ -292,11 +292,7 @@ void setupIMU()
       break;
     }
     Serial.println("Failed to find ICM-20948 chip.");
-    if (millis() - start > 1000)
-    {
-      return;
-    }
-    delay(10);
+    delay(50);
   }
   Serial.println("ICM-20948 Found.");
   imu.startupMagnetometer();
