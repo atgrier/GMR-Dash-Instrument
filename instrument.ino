@@ -24,6 +24,15 @@ uint8_t instr_prev = -1;
 // TODO: Generally add error handling for instruments and external calls
 
 /**
+ * Task to run on second core.
+ */
+void backgroundTask(void *)
+{
+  Serial.println("starting background core");
+  imuTask();
+}
+
+/**
  * Arduino setup function, called on startup and wakeup from sleep.
  */
 void setup()
@@ -55,13 +64,13 @@ void setup()
   WIRE_PORT.setTimeout(4);
 
   xTaskCreatePinnedToCore(
-    imuTask, //Function to implement the task
-    "imuTask", //Name of the task
-    60000, //Stack size in words
-    NULL, //Task input parameter
-    1, //Priority of the task
-    NULL, //Task handle.
-    1 //Core where the task should run
+      backgroundTask,   // Function to implement the task
+      "backgroundTask", // Name of the task
+      6000,            // Stack size in words
+      NULL,             // Task input parameter
+      1,                // Priority of the task
+      NULL,             // Task handle.
+      1                 // Core where the task should run
   );
 }
 

@@ -15,5 +15,5 @@ typedef struct euler_t
 void sleepIMU();
 void resetIMU();
 bool imuReady();
-void imuTask(void*);
+void imuTask();
 euler_t* getData();

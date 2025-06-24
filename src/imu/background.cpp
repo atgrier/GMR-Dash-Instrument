@@ -45,9 +45,6 @@ float M_Ainv[3][3]{{3.84753, -0.06611, 0.02635},
 unsigned long now = 0, last = 0;
 float deltat = 0;
 
-#define UPDATE_SPEED 300
-unsigned long lastUpdate = 0;
-
 // Vector to hold quaternion
 static float q[4] = {1.0, 0.0, 0.0, 0.0};
 
@@ -256,18 +253,14 @@ void imuLoop()
     //   Gxyz[0] = Gxyz[1] = Gxyz[2] = 0;
     MahonyQuaternionUpdate(Axyz[0], Axyz[1], Axyz[2], Gxyz[0], Gxyz[1], Gxyz[2], Mxyz[0], Mxyz[1], Mxyz[2], deltat);
 
-    if (millis() - lastUpdate > UPDATE_SPEED)
-    {
-      // Define Tait-Bryan angles. Strictly valid only for approximately level movement
-      // Standard sensor orientation : X magnetic North, Y West, Z Up (NWU)
-      // Pitch is angle between sensor x-axis and Earth ground plane, toward the
-      // Earth is positive, up toward the sky is negative. Roll is angle between
-      // sensor y-axis and Earth ground plane, y-axis up is positive roll.
-      ypr.roll = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
-      ypr.pitch = asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD;
-      ypr.yaw = atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD;
-      lastUpdate = millis();
-    }
+    // Define Tait-Bryan angles. Strictly valid only for approximately level movement
+    // Standard sensor orientation : X magnetic North, Y West, Z Up (NWU)
+    // Pitch is angle between sensor x-axis and Earth ground plane, toward the
+    // Earth is positive, up toward the sky is negative. Roll is angle between
+    // sensor y-axis and Earth ground plane, y-axis up is positive roll.
+    ypr.pitch = -atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
+    ypr.roll = asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD;
+    ypr.yaw = atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD;
   }
 }
 
@@ -296,6 +289,7 @@ void setupIMU()
   }
   Serial.println("ICM-20948 Found.");
   imu.startupMagnetometer();
+  Serial.println("Magnetometer initialized.");
   imuInitialized = true;
 }
 
@@ -335,7 +329,7 @@ void _resetIMU()
 /**
  * IMU background task.
  */
-void imuTask(void *)
+void imuTask()
 {
   setupIMU();
   uint8_t resetCount = resetCounter;
