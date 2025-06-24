@@ -258,7 +258,7 @@ void imuLoop()
     // Pitch is angle between sensor x-axis and Earth ground plane, toward the
     // Earth is positive, up toward the sky is negative. Roll is angle between
     // sensor y-axis and Earth ground plane, y-axis up is positive roll.
-    ypr.pitch = -atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
+    ypr.pitch = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
     ypr.roll = asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD;
     ypr.yaw = atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD;
   }
