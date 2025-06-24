@@ -51,5 +51,5 @@ in case the microcontroller stops receiving data from it.
 - https://github.com/atgrier/Seeed_Arduino_LCD
 - https://github.com/atgrier/ESP32-SoftwareLIN
 - https://github.com/atgrier/espsoftwareserial
-- https://github.com/sparkfun/SparkFun_BNO08x_Arduino_Library
+- https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary
 - https://github.com/tanakamasayuki/I2C_BM8563

@@ -49,6 +49,14 @@ void drawCar(TFT_eSprite *hlpr)
 }
 
 /**
+ * Get arctangent angle of a position (x, y) relative to (x_c, y_c).
+ */
+float getAngle(float x_c, float y_c, float x, float y)
+{
+  return atan2(y - y_c, x - x_c) / DEG2RAD;
+}
+
+/**
  * Setup the compass instrument, i.e. pre-compute static trigonometric values and draw car to the
  * helper sprite.
  */

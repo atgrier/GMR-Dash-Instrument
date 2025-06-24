@@ -106,6 +106,19 @@ void drawBackground(TFT_eSprite *spr, float pitch)
 }
 
 /**
+ * Convert a position in MM to a pixel position, factoring in the bank angle.
+ */
+void mmToPx(float x, float y, float *xp, float *yp, float roll)
+{
+  float _sin = sin((roll)*DEG2RAD);
+  float _cos = cos((roll)*DEG2RAD);
+  float _x = MM2PX * x;
+  float _y = MM2PX * y;
+  *xp = (_x * _cos) - (_y * _sin);
+  *yp = (_y * _cos) + (_x * _sin);
+}
+
+/**
  * Draw reference car for bank indication at current bank angle.
  */
 void drawForeground(TFT_eSprite *spr, float roll)
