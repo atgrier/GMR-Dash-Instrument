@@ -17,4 +17,4 @@ void setupIMU();
 void resetIMU();
 bool imuReady();
 void imuTask(void*);
-void getData(euler_t *data);
+euler_t* getData();

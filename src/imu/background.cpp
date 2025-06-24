@@ -12,6 +12,7 @@
 #include "background.h"
 #include "../common.h"
 #include "../pins.h"
+#include "imu.h"
 
 #define ICM20948_ADDR 0x69
 ICM_20948_I2C imu;
@@ -75,13 +76,14 @@ void vector_normalize(float a[3])
 }
 
 /**
- * Subtract offsets and apply scale/correction matrices to IMU data.
+ * Apply offsets and scale/correction factors to IMU data.
  */
 void get_scaled_IMU(float Gxyz[3], float Axyz[3], float Mxyz[3])
 {
   float temp[3];
   byte i;
 
+  // Apply gyro offset
   Gxyz[0] = Gscale * (imu.agmt.gyr.axes.x - G_offset[0]);
   Gxyz[1] = Gscale * (imu.agmt.gyr.axes.y - G_offset[1]);
   Gxyz[2] = Gscale * (imu.agmt.gyr.axes.z - G_offset[2]);
@@ -93,7 +95,7 @@ void get_scaled_IMU(float Gxyz[3], float Axyz[3], float Mxyz[3])
   Mxyz[1] = imu.agmt.mag.axes.y;
   Mxyz[2] = imu.agmt.mag.axes.z;
 
-  // apply accel offsets (bias) and scale factors from Magneto
+  // Apply accel offsets (bias) and scale factors from Magneto
   for (i = 0; i < 3; i++)
   {
     temp[i] = (Axyz[i] - A_B[i]);
@@ -103,7 +105,7 @@ void get_scaled_IMU(float Gxyz[3], float Axyz[3], float Mxyz[3])
   Axyz[2] = A_Ainv[2][0] * temp[0] + A_Ainv[2][1] * temp[1] + A_Ainv[2][2] * temp[2];
   vector_normalize(Axyz);
 
-  // apply mag offsets (bias) and scale factors from Magneto
+  // Apply mag offsets (bias) and scale factors from Magneto
   for (i = 0; i < 3; i++)
   {
     temp[i] = (Mxyz[i] - M_B[i]);
@@ -112,6 +114,27 @@ void get_scaled_IMU(float Gxyz[3], float Axyz[3], float Mxyz[3])
   Mxyz[1] = M_Ainv[1][0] * temp[0] + M_Ainv[1][1] * temp[1] + M_Ainv[1][2] * temp[2];
   Mxyz[2] = M_Ainv[2][0] * temp[0] + M_Ainv[2][1] * temp[1] + M_Ainv[2][2] * temp[2];
   vector_normalize(Mxyz);
+}
+
+/**
+ * Apply correction for mounting orientation, i.e. 70 degree rotation about x axis
+ */
+void mountingCorrection(float Gxyz[3], float Axyz[3], float Mxyz[3])
+{
+  float gy = Gxyz[1];
+  float gz = Gxyz[2];
+  Gxyz[1] = (gy * cos(PITCH_OFFSET)) - (gz * sin(PITCH_OFFSET));
+  Gxyz[2] = (gy * sin(PITCH_OFFSET)) + (gz * cos(PITCH_OFFSET));
+
+  float ay = Axyz[1];
+  float az = Axyz[2];
+  Axyz[1] = (ay * cos(PITCH_OFFSET)) - (az * sin(PITCH_OFFSET));
+  Axyz[2] = (ay * sin(PITCH_OFFSET)) + (az * cos(PITCH_OFFSET));
+
+  float my = Mxyz[1];
+  float mz = Mxyz[2];
+  Mxyz[1] = (my * cos(PITCH_OFFSET)) - (mz * sin(PITCH_OFFSET));
+  Mxyz[2] = (my * sin(PITCH_OFFSET)) + (mz * cos(PITCH_OFFSET));
 }
 
 /**
@@ -224,6 +247,7 @@ void imuLoop()
     // reconcile magnetometer and accelerometer axes. X axis points magnetic North for yaw = 0
     Mxyz[1] = -Mxyz[1]; // reflect Y and Z
     Mxyz[2] = -Mxyz[2]; // must be done after offsets & scales applied to raw data
+    mountingCorrection(Gxyz, Axyz, Mxyz);
 
     now = micros();
     deltat = (now - last) * 1.0e-6;
@@ -249,9 +273,9 @@ void imuLoop()
 /**
  * Get yaw, pitch, and roll values.
  */
-void getData(euler_t *data)
+euler_t *getData()
 {
-  data = &ypr;
+  return &ypr;
 }
 
 /**
@@ -275,6 +299,7 @@ void setupIMU()
     delay(10);
   }
   Serial.println("ICM-20948 Found.");
+  imu.startupMagnetometer();
   imuInitialized = true;
 }
 

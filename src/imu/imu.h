@@ -2,6 +2,7 @@
  * IMU instruments.
  */
 #include <TFT_eSPI.h>
+#include "../common.h"
 #include "../pins.h"
 
 #define COLOR_SKY 0x4457
@@ -21,7 +22,7 @@
 #define ROLL_ARC_INSIDE 114.0f
 
 #define ROLL_MULTIPLIER 1.6
-#define PITCH_OFFSET -70
+#define PITCH_OFFSET 70 * DEG2RAD
 #define COMPASS_OFFSET 35
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
