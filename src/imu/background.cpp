@@ -39,8 +39,8 @@ float M_Ainv[3][3]{{3.84753, -0.06611, 0.02635},
 
 // These are the free parameters in the Mahony filter and fusion scheme,
 // Kp is not yet optimized (slight overshoot apparent after rapid sensor reorientations). Ki is not used.
-#define Kp 50.0
-#define Ki 0.0
+#define Kp 1.0
+#define Ki 0.0001
 
 unsigned long now = 0, last = 0;
 float deltat = 0;
@@ -259,7 +259,7 @@ void imuLoop()
     // Earth is positive, up toward the sky is negative. Roll is angle between
     // sensor y-axis and Earth ground plane, y-axis up is positive roll.
     ypr.pitch = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
-    ypr.roll = asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD;
+    ypr.roll = (asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD) - 4;
     ypr.yaw = atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD;
   }
 }
@@ -277,19 +277,20 @@ euler_t *getData()
  */
 void setupIMU()
 {
-  while (!imuInitialized)
+  unsigned long start = millis();
+  while ((millis() - start) < 1000)
   {
     imu.begin(WIRE_PORT, ICM20948_ADDR);
     if (imu.status == ICM_20948_Stat_Ok)
     {
+      Serial.println("ICM-20948 Found.");
+      imu.startupMagnetometer();
+      Serial.println("Magnetometer initialized.");
       break;
     }
     Serial.println("Failed to find ICM-20948 chip.");
     delay(50);
   }
-  Serial.println("ICM-20948 Found.");
-  imu.startupMagnetometer();
-  Serial.println("Magnetometer initialized.");
   imuInitialized = true;
 }
 
@@ -331,10 +332,14 @@ void _resetIMU()
  */
 void imuTask()
 {
-  setupIMU();
+  // setupIMU();
   uint8_t resetCount = resetCounter;
   while (true)
   {
+    if (!imuInitialized) {
+      delay(50);
+      continue;
+    }
     imuLoop();
     if (sleepRequested)
     {

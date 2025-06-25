@@ -18,6 +18,7 @@ uint8_t millisPerReading = 100;
  */
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type)
 {
+  setupIMU();
   if (!imuReady())
   {
     return;

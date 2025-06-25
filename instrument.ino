@@ -28,7 +28,6 @@ uint8_t instr_prev = -1;
  */
 void backgroundTask(void *)
 {
-  Serial.println("starting background core");
   imuTask();
 }
 
@@ -66,9 +65,9 @@ void setup()
   xTaskCreatePinnedToCore(
       backgroundTask,   // Function to implement the task
       "backgroundTask", // Name of the task
-      6000,            // Stack size in words
+      6000,             // Stack size in words
       NULL,             // Task input parameter
-      1,                // Priority of the task
+      0,                // Priority of the task
       NULL,             // Task handle.
       1                 // Core where the task should run
   );
