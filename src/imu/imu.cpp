@@ -14,15 +14,12 @@
 ICM_20948_I2C icm20948;
 
 bool imuInitialized = false;
-// uint8_t millisPerReading = 50;
-// uint8_t missedReadings = 0;
-// bool justReset = true;
 
 // Quaternion rotation for pitch offset
-float qx = sin(PITCH_OFFSET * DEG2RAD / 2.0);
+float qx = sin(PITCH_OFFSET / 2.0);
 float qy = 0.0;
 float qz = 0.0;
-float qw = cos(PITCH_OFFSET * DEG2RAD / 2.0);
+float qw = cos(PITCH_OFFSET / 2.0);
 euler_t ypr;
 
 /**
@@ -33,9 +30,11 @@ euler_t ypr;
 void setupIMU()
 {
   unsigned long start = millis();
-  while (!imuInitialized) {
-    icm20948.begin(ICM20948_WIRE, ICM20948_ADDR);
-    if (icm20948.status == ICM_20948_Stat_Ok) {
+  while (!imuInitialized)
+  {
+    icm20948.begin(WIRE_PORT, ICM20948_ADDR);
+    if (icm20948.status == ICM_20948_Stat_Ok)
+    {
       break;
     }
     Serial.println("Failed to find ICM-20948 chip.");
@@ -47,7 +46,8 @@ void setupIMU()
   }
   Serial.println("ICM-20948 Found.");
   bool success = true;
-  while (!imuInitialized) {
+  while (!imuInitialized)
+  {
     success &= (icm20948.initializeDMP() == ICM_20948_Stat_Ok);
     success &= (icm20948.enableDMPSensor(INV_ICM20948_SENSOR_ORIENTATION) == ICM_20948_Stat_Ok);
     success &= (icm20948.setDMPODRrate(DMP_ODR_Reg_Quat9, 4) == ICM_20948_Stat_Ok);
@@ -55,7 +55,8 @@ void setupIMU()
     success &= (icm20948.enableDMP() == ICM_20948_Stat_Ok);
     success &= (icm20948.resetDMP() == ICM_20948_Stat_Ok);
     success &= (icm20948.resetFIFO() == ICM_20948_Stat_Ok);
-    if (success) {
+    if (success)
+    {
       break;
     }
   }
@@ -70,8 +71,6 @@ void resetIMU()
 {
   sleepIMU();
   imuInitialized = false;
-  // missedReadings = 0;
-  // justReset = true;
   setupIMU();
 }
 
@@ -111,8 +110,6 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
     break;
   }
 
-  // unsigned long millisNow;
-  // unsigned long millisPrevious = millis();
   unsigned long millisBacklight = millis();
 
   // Only 1 font used in the sprite, so can remain loaded
@@ -126,52 +123,41 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
 
   while (true)
   {
-    // millisNow = millis();
-    // if (millisNow - millisPrevious >= millisPerReading)
-    // {
-      // millisPrevious += millisPerReading;
-      icm_20948_DMP_data_t data;
-      icm20948.readDMPdataFromFIFO(&data);
+    icm_20948_DMP_data_t data;
+    icm20948.readDMPdataFromFIFO(&data);
 
-      if ((icm20948.status == ICM_20948_Stat_Ok) || (icm20948.status == ICM_20948_Stat_FIFOMoreDataAvail))
+    if ((icm20948.status == ICM_20948_Stat_Ok) || (icm20948.status == ICM_20948_Stat_FIFOMoreDataAvail))
+    {
+      if ((data.header & DMP_header_bitmap_Quat9) <= 0)
       {
-        if ((data.header & DMP_header_bitmap_Quat9) <= 0) { continue; }
-        // justReset = false;
-        quaternionToEuler(
+        continue;
+      }
+      // justReset = false;
+      quaternionToEuler(
           ((double)data.Quat9.Data.Q1) / 1073741824.0,
           ((double)data.Quat9.Data.Q2) / 1073741824.0,
           ((double)data.Quat9.Data.Q3) / 1073741824.0,
-          &ypr
-        );
-        Serial.print("Pitch: ");
-        Serial.print(ypr.pitch);
-        Serial.print(" Roll: ");
-        Serial.print(ypr.roll);
-        Serial.print(" Yaw: ");
-        Serial.println(ypr.yaw);
-        switch (instr_type)
-        {
-        case ATTITUDE:
-          drawAttitude(spr, ypr.roll, ypr.pitch);
-          break;
-        case COMPASS:
-          drawCompass(spr, hlpr, word_hlpr, ypr.yaw);  // TODO: Calibrate compass
-          break;
-        }
-        if ((millis() - millisBacklight) >= 1000)
-        {
-          handleBacklight(100);
-          millisBacklight = millis();
-        }
-      // }
-      // else
-      // {
-      //   missedReadings++;
-      //   if (missedReadings > 50 || ((!justReset) && (missedReadings > 20)))
-      //   {
-      //     resetIMU();
-      //   }
-      // }
+          &ypr);
+      Serial.print("Pitch: ");
+      Serial.print(ypr.pitch);
+      Serial.print(" Roll: ");
+      Serial.print(ypr.roll);
+      Serial.print(" Yaw: ");
+      Serial.println(ypr.yaw);
+      switch (instr_type)
+      {
+      case ATTITUDE:
+        drawAttitude(spr, ypr.roll, ypr.pitch);
+        break;
+      case COMPASS:
+        drawCompass(spr, hlpr, word_hlpr, ypr.yaw); // TODO: Calibrate compass
+        break;
+      }
+      if ((millis() - millisBacklight) >= 1000)
+      {
+        handleBacklight(100);
+        millisBacklight = millis();
+      }
     }
     int8_t click = clickType(3);
     if (click == 1)
@@ -194,22 +180,10 @@ void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, 
 }
 
 /**
- * Convert a position in MM to a pixel position, factoring in the bank angle.
- */
-void mmToPx(float x, float y, float *xp, float *yp, float roll)
-{
-  float _sin = sin((roll)*DEG2RAD);
-  float _cos = cos((roll)*DEG2RAD);
-  float _x = MM2PX * x;
-  float _y = MM2PX * y;
-  *xp = (_x * _cos) - (_y * _sin);
-  *yp = (_y * _cos) + (_x * _sin);
-}
-
-/**
  * Multiply two quaternions together.
  */
-void multiplyQuaternion(float qr, float qi, float qj, float qk, float qw, float qx, float qy, float qz, float *qr_o, float *qi_o, float *qj_o, float *qk_o) {
+void multiplyQuaternion(float qr, float qi, float qj, float qk, float qw, float qx, float qy, float qz, float *qr_o, float *qi_o, float *qj_o, float *qk_o)
+{
   *qr_o = (qr * qw) - (qi * qx) - (qj * qy) - (qk * qz);
   *qi_o = (qr * qx) + (qi * qw) + (qj * qz) - (qk * qy);
   *qj_o = (qr * qy) - (qi * qz) + (qj * qw) + (qk * qx);
@@ -240,14 +214,6 @@ void quaternionToEuler(double q1, double q2, double q3, euler_t *_data)
   float sqk = sq(qk);
 
   _data->yaw = COMPASS_OFFSET - (atan2(2.0 * ((qi * qj) + (qk * qr)), (sqi - sqj - sqk + sqr)) / DEG2RAD);
-  _data->roll = asin(-2.0 * ((qi * qk) - (qj * qr)) / (sqi + sqj + sqk + sqr)) / DEG2RAD;
+  _data->roll = ROLL_OFFSET + (asin(-2.0 * ((qi * qk) - (qj * qr)) / (sqi + sqj + sqk + sqr)) / DEG2RAD);
   _data->pitch = atan2(2.0 * ((qj * qk) + (qi * qr)), (-sqi - sqj + sqk + sqr)) / DEG2RAD;
-}
-
-/**
- * Get arctangent angle of a position (x, y) relative to (x_c, y_c).
- */
-float getAngle(float x_c, float y_c, float x, float y)
-{
-  return atan2(y - y_c, x - x_c) / DEG2RAD;
 }
