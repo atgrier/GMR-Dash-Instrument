@@ -62,18 +62,24 @@ bool handleBacklight(uint32_t freq)
   // TODO: The brightness flickers a lot when the vehicle is on, maybe the PWM varies a lot?
   uint8_t brightness = (uint8_t)max(min((255 * pulseIn(VEHICLE_BACKLIGHT, HIGH, 3000000 / freq) * freq / 1000000), (long unsigned int)255), (long unsigned int)0);
   if (brightness == 0 && digitalRead(VEHICLE_BACKLIGHT))
-  {
+  { // Tests if dash backlights are on and set to max brightness
     brightness = 255;
   }
   if ((brightness == vehicle_brightness) || ((brightness != 0) && (brightness != 255) && (fabsf(brightness - vehicle_brightness) <= 8)))
-  {
+  { // Tests if brightness is unchanged from last poll, or if not low/high is within 8 steps
     return (brightness != 0);
   }
   vehicle_brightness = brightness;
   if (vehicle_brightness == 0)
-  {
+  { // Daytime, instrument backlights are off
     analogWrite(XIAO_BL, 192); // TODO: Tune daytime brightness
     return false;
+  }
+  // Night time follows
+  if (vehicle_brightness == 255)
+  { // Set brightness to max if instrument lighting is max, intended to help at dawn/dusk when the lights could be on but the sun still shining directly at the display
+    analogWrite(XIAO_BL, 255);
+    return true;
   }
   analogWrite(XIAO_BL, map(vehicle_brightness, 24, 255, 32, 128)); // TODO: Tune nighttime brightness
   return true;
