@@ -259,8 +259,8 @@ void imuLoop()
     // Earth is positive, up toward the sky is negative. Roll is angle between
     // sensor y-axis and Earth ground plane, y-axis up is positive roll.
     ypr.pitch = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
-    ypr.roll = (asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD) - 4;
-    ypr.yaw = atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD;
+    ypr.roll = ROLL_OFFSET + (asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD);
+    ypr.yaw = COMPASS_OFFSET + (atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD);
   }
 }
 

@@ -321,20 +321,10 @@ void getTimeFromFingers(TFT_eSprite *spr, TFT_eSprite *hlpr)
 }
 
 /**
- * Activate the clock instrument. This is the entry point which should be called from the main
- * instrument.
+ * Poll brightness, update backlight and colors.
  */
-void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin)
+void updateColors()
 {
-  if (!clockInitialized)
-  {
-    rtc.begin();
-    clockInitialized = true;
-  }
-
-  // Only 1 font used in the sprite, so can remain loaded
-  spr->loadFont(EurostileLTProDemi48);
-  spr->setTextDatum(MC_DATUM);
   if (handleBacklight(100))
   {
     color_bg = COLOR_BG_NIGHT;
@@ -349,6 +339,24 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin)
     color_mh = COLOR_MH;
     color_hh = COLOR_HH;
   }
+}
+
+/**
+ * Activate the clock instrument. This is the entry point which should be called from the main
+ * instrument.
+ */
+void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin)
+{
+  if (!clockInitialized)
+  {
+    rtc.begin();
+    clockInitialized = true;
+  }
+
+  // Only 1 font used in the sprite, so can remain loaded
+  spr->loadFont(EurostileLTProDemi48);
+  spr->setTextDatum(MC_DATUM);
+  updateColors();
 
   syncTime();
   drawClock(spr, hlpr);
@@ -373,20 +381,7 @@ void clockInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, bool no_lin)
     }
     if (currentTime - lastBacklightTime >= 1000)
     {
-      if (handleBacklight(100))
-      {
-        color_bg = COLOR_BG_NIGHT;
-        color_fg = COLOR_FG_NIGHT;
-        color_mh = COLOR_MH_NIGHT;
-        color_hh = COLOR_HH_NIGHT;
-      }
-      else
-      {
-        color_bg = COLOR_BG;
-        color_fg = COLOR_FG;
-        color_mh = COLOR_MH;
-        color_hh = COLOR_HH;
-      }
+      updateColors();
       lastBacklightTime = currentTime;
     }
     if (currentTime - previousTime >= 100)

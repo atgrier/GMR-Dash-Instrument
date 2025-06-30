@@ -22,8 +22,9 @@
 #define ROLL_ARC_INSIDE 114.0f
 
 #define ROLL_MULTIPLIER 1.6
-#define PITCH_OFFSET 70 * DEG2RAD
-#define COMPASS_OFFSET 35
+#define PITCH_OFFSET -70 * DEG2RAD // Radians
+#define ROLL_OFFSET -2             // Degress
+#define COMPASS_OFFSET 35          // Degress
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
 
