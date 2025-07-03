@@ -31,6 +31,7 @@ void goToSleep()
 
   gpio_deep_sleep_hold_en();
   esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_PIN, 1);
+  delay(1000);
   esp_deep_sleep_start();
 }
 
