@@ -5,7 +5,7 @@
 
 #include "sleep.h"
 #include "../pins.h"
-#include "../imu/imu.h"
+#include "../imu/background.h"
 #include "../display/lv_xiao_round_screen.h"
 
 unsigned long lastLinTime;

@@ -9,6 +9,7 @@
 #include "src/screen.h"
 #include "src/display/lv_xiao_round_screen.h"
 #include "src/sleep/sleep.h"
+#include "src/imu/background.h"
 #include "src/imu/imu.h"
 #include "src/clock/lr_clock.h"
 
@@ -21,6 +22,14 @@ uint8_t instr = 0;
 uint8_t instr_prev = -1;
 
 // TODO: Generally add error handling for instruments and external calls
+
+/**
+ * Task to run on second core.
+ */
+void backgroundTask(void *)
+{
+  imuTask();
+}
 
 /**
  * Arduino setup function, called on startup and wakeup from sleep.
@@ -45,16 +54,23 @@ void setup()
   pinMode(TOUCH_INT, INPUT_PULLUP);
   pinMode(VEHICLE_BACKLIGHT, INPUT);
   handleBacklight(100);
+
   Wire.begin();
-#if defined(XIAO_ESP32S3)
-  Wire.setTimeout(4);
-#elif defined(QTPY_ESP32S3)
+#ifdef QTPY_ESP32S3
   Wire1.begin();
-  Wire1.setTimeout(4);
-#else
-#error "One of XIAO_ESP32S3 or QTPY_ESP32S3 must be defined"
 #endif
-  setupIMU();
+  WIRE_PORT.setClock(400000);
+  WIRE_PORT.setTimeout(4);
+
+  xTaskCreatePinnedToCore(
+      backgroundTask,   // Function to implement the task
+      "backgroundTask", // Name of the task
+      6000,             // Stack size in words
+      NULL,             // Task input parameter
+      0,                // Priority of the task
+      NULL,             // Task handle.
+      1                 // Core where the task should run
+  );
 }
 
 /**

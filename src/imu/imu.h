@@ -2,9 +2,8 @@
  * IMU instruments.
  */
 #include <TFT_eSPI.h>
+#include "../common.h"
 #include "../pins.h"
-
-#define ICM20948_ADDR 0x69
 
 #define COLOR_SKY 0x4457
 #define COLOR_GROUND 0x9B06
@@ -23,21 +22,14 @@
 #define ROLL_ARC_INSIDE 114.0f
 
 #define ROLL_MULTIPLIER 1.6
-#define PITCH_OFFSET -70 * DEG2RAD // Radians
-#define ROLL_OFFSET -2             // Degress
-#define COMPASS_OFFSET 35          // Degress
+#define PITCH_OFFSET 70 * DEG2RAD // Radians
+#define ROLL_OFFSET -1            // Degress
+#define COMPASS_OFFSET 115        // Degress
 #define DIST_PER_DEG (60.0f / 15.0f)
 #define DEG_PER_SCREEN (CARD_SIZE / DIST_PER_DEG)
 
 #ifndef IMU_DEFINED
 #define IMU_DEFINED
-typedef struct euler_t
-{
-  float yaw;
-  float pitch;
-  float roll;
-};
-
 enum imu_instrument_t
 {
   ATTITUDE,
@@ -45,7 +37,4 @@ enum imu_instrument_t
 };
 #endif
 
-void quaternionToEuler(double q1, double q2, double q3, euler_t *_data);
 void imuInstrument(TFT_eSprite *spr, TFT_eSprite *hlpr, TFT_eSprite *word_hlpr, imu_instrument_t instr_type);
-void sleepIMU();
-void setupIMU();
