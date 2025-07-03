@@ -52,6 +52,7 @@ euler_t ypr;
 bool imuInitialized = false;
 uint8_t resetCounter = 0;
 bool sleepRequested = false;
+bool imuAsleep = false;
 
 /**
  * Vector dot product.
@@ -312,6 +313,7 @@ void _sleepIMU()
     imu.sleep();
   }
   delay(10);
+  imuAsleep = true;
 }
 
 /**
@@ -324,6 +326,7 @@ void _resetIMU()
     _sleepIMU();
     imuInitialized = false;
     setupIMU();
+    imuAsleep = false;
   }
 }
 
@@ -336,7 +339,8 @@ void imuTask()
   uint8_t resetCount = resetCounter;
   while (true)
   {
-    if (!imuInitialized) {
+    if (!imuInitialized)
+    {
       delay(50);
       continue;
     }
@@ -367,4 +371,7 @@ void resetIMU()
 void sleepIMU()
 {
   sleepRequested = true;
+  while (imuInitialized && !imuAsleep) {
+    delay(5);
+  }
 }
