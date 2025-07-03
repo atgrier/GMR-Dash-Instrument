@@ -31,11 +31,11 @@ float A_Ainv[3][3]{{0.0611, 3e-05, -0.00012},
                    {-0.00012, 7e-05, 0.06052}};
 
 // Mag scale divide by 369.4 to normalize
-float M_B[3]{111.47, 44.59, 162.5};
+float M_B[3]{109.6, 43.4, 165.04};
 
-float M_Ainv[3][3]{{3.84753, -0.06611, 0.02635},
-                   {-0.06611, 3.69417, -0.01908},
-                   {0.02635, -0.01908, 3.67146}};
+float M_Ainv[3][3]{{5.76911, 0.01231, -0.04636},
+                   {0.01231, 5.42147, 0.00912},
+                   {-0.04636, 0.00912, 5.79055}};
 
 // These are the free parameters in the Mahony filter and fusion scheme,
 // Kp is not yet optimized (slight overshoot apparent after rapid sensor reorientations). Ki is not used.
