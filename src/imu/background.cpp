@@ -121,18 +121,18 @@ void mountingCorrection(float Gxyz[3], float Axyz[3], float Mxyz[3])
 {
   float gy = Gxyz[1];
   float gz = Gxyz[2];
-  Gxyz[1] = (gy * cos(PITCH_OFFSET)) - (gz * sin(PITCH_OFFSET));
-  Gxyz[2] = (gy * sin(PITCH_OFFSET)) + (gz * cos(PITCH_OFFSET));
+  Gxyz[1] = (gy * cos(-PITCH_OFFSET)) - (gz * sin(-PITCH_OFFSET));
+  Gxyz[2] = (gy * sin(-PITCH_OFFSET)) + (gz * cos(-PITCH_OFFSET));
 
   float ay = Axyz[1];
   float az = Axyz[2];
-  Axyz[1] = (ay * cos(PITCH_OFFSET)) - (az * sin(PITCH_OFFSET));
-  Axyz[2] = (ay * sin(PITCH_OFFSET)) + (az * cos(PITCH_OFFSET));
+  Axyz[1] = (ay * cos(-PITCH_OFFSET)) - (az * sin(-PITCH_OFFSET));
+  Axyz[2] = (ay * sin(-PITCH_OFFSET)) + (az * cos(-PITCH_OFFSET));
 
   float my = Mxyz[1];
   float mz = Mxyz[2];
-  Mxyz[1] = (my * cos(PITCH_OFFSET)) - (mz * sin(PITCH_OFFSET));
-  Mxyz[2] = (my * sin(PITCH_OFFSET)) + (mz * cos(PITCH_OFFSET));
+  Mxyz[1] = (my * cos(-PITCH_OFFSET)) - (mz * sin(-PITCH_OFFSET));
+  Mxyz[2] = (my * sin(-PITCH_OFFSET)) + (mz * cos(-PITCH_OFFSET));
 }
 
 /**
@@ -260,7 +260,7 @@ void imuLoop()
     // Earth is positive, up toward the sky is negative. Roll is angle between
     // sensor y-axis and Earth ground plane, y-axis up is positive roll.
     ypr.pitch = atan2((q[0] * q[1] + q[2] * q[3]), 0.5 - (q[1] * q[1] + q[2] * q[2])) / DEG2RAD;
-    ypr.roll = ROLL_OFFSET + (asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD);
+    ypr.roll = ROLL_OFFSET - (asin(2.0 * (q[0] * q[2] - q[1] * q[3])) / DEG2RAD);
     ypr.yaw = COMPASS_OFFSET + (atan2((q[1] * q[2] + q[0] * q[3]), 0.5 - (q[2] * q[2] + q[3] * q[3])) / DEG2RAD);
   }
 }
